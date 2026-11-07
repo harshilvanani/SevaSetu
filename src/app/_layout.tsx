@@ -83,6 +83,10 @@ function RootNavigator() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="organizations/new" />
         <Stack.Screen name="admin" />
+        <Stack.Screen name="events/new" />
+        <Stack.Screen name="events/[id]/index" />
+        <Stack.Screen name="events/[id]/edit" />
+        <Stack.Screen name="events/[id]/task" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />
