@@ -23,7 +23,7 @@
     "android": {
       "package": "org.sevasetu.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FFF3E6",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -46,9 +46,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFF3E6",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 160
+          "imageWidth": 220
         }
       ],
       "expo-font",
@@ -71,7 +71,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#8441AB"
+          "color": "#650DB5"
         }
       ],
       "@react-native-community/datetimepicker"

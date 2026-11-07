@@ -1,30 +1,37 @@
+import { Image } from 'expo-image';
 import { View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
 
 import { colors, fonts } from '@/theme/tokens';
 
-import { decorative } from './a11y';
 import { Text } from './Text';
 
-// SevaSetu mark: a bridge (setu) with a rising sun behind it.
-// Placeholder brand until official Art of Living artwork is supplied.
+// Brand colours sampled from the SevaSetu logo (assets/brand/sevasetu-logo.png).
+const BRAND_PURPLE = '#650DB5';
+const BRAND_ORANGE = '#FD8602';
+const MARK_RATIO = 512 / 270;
+
+/** Sun, volunteers and bridge mark. `size` is the mark's height. */
 export function LogoMark({ size = 40 }: { size?: number }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 64 64" {...decorative}>
-      <Circle cx="32" cy="32" r="32" fill={colors.peach} />
-      <Circle cx="32" cy="27" r="11" fill={colors.sunrise} />
-      <Path d="M12 45C17 34 24 29 32 29s15 5 20 16" stroke={colors.purple} strokeWidth="4.5" strokeLinecap="round" fill="none" />
-      <Path d="M7 45h50M22 34.5V45M32 29v16M42 34.5V45" stroke={colors.purple} strokeWidth="4.5" strokeLinecap="round" />
-    </Svg>
+    <Image
+      source={require('@/assets/images/logo-mark.png')}
+      style={{ width: size * MARK_RATIO, height: size }}
+      contentFit="contain"
+      accessible={false}
+    />
   );
 }
 
 export function Logo({ size = 40, subtitle = true }: { size?: number; subtitle?: boolean }) {
+  const word = { fontFamily: fonts.semibold, fontSize: size * 0.55, lineHeight: size * 0.66, letterSpacing: -0.3 };
   return (
     <View accessible accessibilityLabel="SevaSetu by The Art of Living" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <LogoMark size={size} />
+      <LogoMark size={size * 0.8} />
       <View>
-        <Text style={{ fontFamily: fonts.serif, fontSize: size * 0.5, lineHeight: size * 0.62, color: colors.text }}>SevaSetu</Text>
+        <Text style={word}>
+          <Text style={[word, { color: BRAND_PURPLE }]}>seva</Text>
+          <Text style={[word, { color: BRAND_ORANGE }]}>setu</Text>
+        </Text>
         {subtitle ? (
           <Text style={{ fontFamily: fonts.medium, fontSize: Math.max(11, size * 0.26), lineHeight: size * 0.36, color: colors.purple }}>
             by The Art of Living
