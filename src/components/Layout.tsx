@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
@@ -36,6 +37,8 @@ export function Screen({
   header,
   contentStyle,
   edges = ['top'],
+  refreshing,
+  onRefresh,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -45,6 +48,8 @@ export function Screen({
   header?: ReactNode;
   contentStyle?: ViewStyle;
   edges?: ('top' | 'bottom')[];
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const { isPhone } = useLayout();
@@ -61,6 +66,7 @@ export function Screen({
       {header}
       {scroll ? (
         <ScrollView
+          refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.purple} /> : undefined}
           contentContainerStyle={{ paddingTop: 8, paddingBottom: (edges.includes('bottom') ? insets.bottom : 0) + 32 }}
           keyboardShouldPersistTaps="handled">
           {inner}

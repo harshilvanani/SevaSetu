@@ -8,6 +8,6 @@ export default function Index() {
   const { session, profile } = useAuth();
   const mode = useAppStore((s) => s.mode);
   if (!session) return <Redirect href="/sign-in" />;
-  if (!profile?.onboarded_at) return <Redirect href="/location" />;
+  if (!profile?.onboarded_at) return <Redirect href="/onboarding/location" />;
   return <Redirect href={mode === 'organizer' ? '/dashboard' : '/discover'} />;
 }

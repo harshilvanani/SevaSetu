@@ -25,7 +25,7 @@ i18n.use(initReactI18next).init({
 
 // BCP-47 tag for Intl date/number formatting.
 export function intlLocale(): string {
-  return { en: 'en-CA', hi: 'hi-IN', fr: 'fr-CA' }[(i18n.language as Locale) ?? 'en'] ?? 'en-CA';
+  return { en: 'en-US', hi: 'hi-IN', fr: 'fr-CA' }[(i18n.language as Locale) ?? 'en'] ?? 'en-CA';
 }
 
 export default i18n;

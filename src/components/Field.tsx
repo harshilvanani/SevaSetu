@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.control,
     backgroundColor: colors.white,
   },
-  searchInput: { flex: 1, minWidth: 0, fontSize: 16, fontFamily: fonts.regular, color: colors.text, height: '100%' },
+  searchInput: { flex: 1, minWidth: 0, fontSize: 16, fontFamily: fonts.regular, color: colors.text, height: '100%', outlineWidth: 0 },
   tagBox: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -187,5 +187,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.amberTint,
   },
   tagRemove: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  tagInput: { flex: 1, minWidth: 100, height: 32, fontSize: 16, fontFamily: fonts.regular, color: colors.text },
+  tagInput: { flex: 1, minWidth: 100, height: 32, fontSize: 16, fontFamily: fonts.regular, color: colors.text, outlineWidth: 0 },
 });
