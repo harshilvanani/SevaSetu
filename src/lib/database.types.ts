@@ -21,6 +21,7 @@ export type Database = {
           completed_at: string | null
           id: string
           joined_at: string
+          reminded_at: string | null
           status: Database["public"]["Enums"]["assignment_status"]
           task_id: string
           volunteer_id: string
@@ -31,6 +32,7 @@ export type Database = {
           completed_at?: string | null
           id?: string
           joined_at?: string
+          reminded_at?: string | null
           status?: Database["public"]["Enums"]["assignment_status"]
           task_id: string
           volunteer_id: string
@@ -41,6 +43,7 @@ export type Database = {
           completed_at?: string | null
           id?: string
           joined_at?: string
+          reminded_at?: string | null
           status?: Database["public"]["Enums"]["assignment_status"]
           task_id?: string
           volunteer_id?: string
@@ -753,6 +756,8 @@ export type Database = {
       }
       decline_invitation: { Args: { p_invitation: string }; Returns: undefined }
       delete_my_account: { Args: never; Returns: undefined }
+      event_org: { Args: { p_event: string }; Returns: string }
+      expire_invitations: { Args: never; Returns: number }
       has_task_access: { Args: { p_task: string }; Returns: boolean }
       invite_to_task: {
         Args: { p_days?: number; p_task: string; p_users: string[] }
@@ -797,6 +802,7 @@ export type Database = {
           id: string
         }[]
       }
+      send_seva_reminders: { Args: never; Returns: number }
       submit_progress: {
         Args: { p_assignment: string; p_note?: string; p_qty: number }
         Returns: string

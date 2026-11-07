@@ -15,6 +15,7 @@ function deviceLocale(): Locale {
   return (SUPPORTED_LOCALES as readonly string[]).includes(code) ? (code as Locale) : 'en';
 }
 
+// eslint-disable-next-line import/no-named-as-default-member -- i18next's documented setup
 i18n.use(initReactI18next).init({
   resources: { en: { translation: en }, hi: { translation: hi }, fr: { translation: fr } },
   lng: deviceLocale(),

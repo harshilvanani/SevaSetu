@@ -561,6 +561,23 @@ const hi: Strings = {
     requestedBy: '{{name}} द्वारा अनुरोध · {{date}}',
     notAdmin: 'यह पेज केवल सेवासेतु एडमिन देख सकते हैं।',
   },
+  notifications: {
+    title: 'सूचनाएँ',
+    markAll: 'सभी को पढ़ा हुआ करें',
+    empty: 'सब पढ़ लिया',
+    emptyBody: 'आपकी सेवा, निमंत्रण और समीक्षा से जुड़ी जानकारी यहाँ दिखेगी।',
+    unread: 'अपठित',
+    types: {
+      joined: 'आप एक सेवा से जुड़े',
+      invited: 'आपको एक निजी सेवा के लिए आमंत्रण',
+      report_submitted: 'प्रगति समीक्षा के लिए',
+      report_reviewed: 'आपकी प्रगति की समीक्षा हुई',
+      assignment_completed: 'सेवा पुष्ट',
+      reminder: 'सेवा अनुस्मारक',
+      org_pending: 'समीक्षा के लिए संगठन',
+      org_reviewed: 'संगठन समीक्षा',
+    },
+  },
   nav: {
     discover: 'खोजें',
     mySeva: 'मेरी सेवा',

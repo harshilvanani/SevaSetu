@@ -561,6 +561,23 @@ const fr: Strings = {
     requestedBy: 'Demandée par {{name}} · {{date}}',
     notAdmin: 'Seuls les administrateurs SevaSetu peuvent voir cette page.',
   },
+  notifications: {
+    title: 'Notifications',
+    markAll: 'Tout marquer comme lu',
+    empty: 'Vous êtes à jour',
+    emptyBody: 'Les nouvelles de vos seva, invitations et révisions apparaîtront ici.',
+    unread: 'Non lues',
+    types: {
+      joined: 'Vous avez rejoint une seva',
+      invited: 'Vous êtes invité à une seva privée',
+      report_submitted: 'Avancement à réviser',
+      report_reviewed: 'Votre avancement a été révisé',
+      assignment_completed: 'Seva vérifiée',
+      reminder: 'Rappel de seva',
+      org_pending: 'Organisation à examiner',
+      org_reviewed: 'Examen de l’organisation',
+    },
+  },
   nav: {
     discover: 'Découvrir',
     mySeva: 'Ma seva',

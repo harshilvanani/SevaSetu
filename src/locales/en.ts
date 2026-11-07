@@ -560,6 +560,23 @@ const en = {
     requestedBy: 'Requested by {{name}} · {{date}}',
     notAdmin: 'Only SevaSetu admins can see this page.',
   },
+  notifications: {
+    title: 'Notifications',
+    markAll: 'Mark all as read',
+    empty: 'You’re all caught up',
+    emptyBody: 'Updates about seva you join, invitations and reviews will appear here.',
+    unread: 'Unread',
+    types: {
+      joined: 'You joined a seva',
+      invited: 'You’re invited to a private seva',
+      report_submitted: 'Progress awaiting review',
+      report_reviewed: 'Your progress was reviewed',
+      assignment_completed: 'Seva verified',
+      reminder: 'Seva reminder',
+      org_pending: 'Organization to review',
+      org_reviewed: 'Organization review',
+    },
+  },
   nav: {
     discover: 'Discover',
     mySeva: 'My Seva',

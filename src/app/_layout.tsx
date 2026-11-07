@@ -17,6 +17,7 @@ import { AppState, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
+import { usePushRegistration } from '@/lib/push';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -55,6 +56,7 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session, initializing, profile, profileLoading } = useAuth();
   const ready = !initializing && !profileLoading;
+  usePushRegistration(session?.user.id);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();

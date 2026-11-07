@@ -71,6 +71,30 @@ In **Authentication → SMTP Settings**, configure a custom SMTP sender before l
 update profiles set is_platform_admin = true where email = 'you@example.com';
 ```
 
+## Notifications
+
+- **In-app inbox.** Database triggers write rows to `notifications`: joins, invitations, reports submitted and reviewed, served positions, organization approvals, and reminders. The bell and the Notifications screen read them.
+- **Reminders.** `pg_cron` runs `send_seva_reminders()` hourly, which notifies volunteers once, about 24h before their seva. `expire_invitations()` runs daily.
+- **Push.** Each new notification is POSTed to the `send-push` Edge Function, which sends it through Expo's push service. One-time setup:
+  1. `npx eas-cli@latest init`, which adds the EAS project ID the app needs to request push tokens.
+  2. `supabase functions deploy send-push --no-verify-jwt`
+  3. `supabase secrets set PUSH_WEBHOOK_SECRET=<random string>`
+  4. In the SQL editor:
+     ```sql
+     select vault.create_secret('https://<project-ref>.supabase.co/functions/v1/send-push', 'push_function_url');
+     select vault.create_secret('<same random string>', 'push_webhook_secret');
+     ```
+  Until these exist, the trigger does nothing and the in-app inbox still works.
+
 ## Building for the stores
 
-Uses EAS (`npx eas-cli@latest build`). This requires an Apple Developer account and a Google Play Console account. Until then, test with Expo Go or a development build.
+`eas.json` defines three profiles: `development` (dev client), `preview` (internal APK / ad-hoc) and `production`.
+
+```bash
+npx eas-cli@latest build --profile preview --platform android
+npx eas-cli@latest build --profile production --platform ios
+```
+
+Store builds need an Apple Developer account ($99/yr; also required for Sign in with Apple) and a Google Play Console account. Until then, test with Expo Go (`npm start`, then scan the QR code) or on the web (`npm run web`).
+
+Bundle ID / package name: `org.sevasetu.app`. Change it in `app.json` before the first store build if you'd like a different one.
