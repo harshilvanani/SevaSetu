@@ -76,7 +76,13 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={!signedIn || onboarded}>
         <Stack.Screen name="(app)" />
-        <Stack.Screen name="seva/[id]" />
+        <Stack.Screen name="seva/[id]/index" />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn && onboarded}>
+        <Stack.Screen name="seva/[id]/joined" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="organizations/new" />
+        <Stack.Screen name="admin" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />
