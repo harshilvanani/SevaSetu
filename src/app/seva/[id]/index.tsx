@@ -247,7 +247,7 @@ function Details({ task, header }: { task: TaskWithEvent; header: ReactNode }) {
 
   if (isDesktop) {
     return (
-      <Screen header={header} maxWidth={1180}>
+      <Screen title={task.title} header={header} maxWidth={1180}>
         <Row gap={40} style={{ alignItems: 'flex-start' }}>
           {content}
           <View style={{ width: 380 }}>
@@ -258,7 +258,7 @@ function Details({ task, header }: { task: TaskWithEvent; header: ReactNode }) {
     );
   }
   return (
-    <Screen header={header} footer={<JoinPanel task={task} mine={!!mine} layout="footer" />}>
+    <Screen title={task.title} header={header} footer={<JoinPanel task={task} mine={!!mine} layout="footer" />}>
       {content}
     </Screen>
   );

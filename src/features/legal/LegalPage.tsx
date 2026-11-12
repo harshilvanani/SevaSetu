@@ -14,7 +14,7 @@ export type LegalSection = { heading: string; paragraphs?: string[]; bullets?: s
 export function LegalPage({ title, intro, sections }: { title: string; intro: string; sections: LegalSection[] }) {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
   return (
-    <Screen header={<TopBar onBack={back} title={title} />} maxWidth={760}>
+    <Screen title={title} header={<TopBar onBack={back} title={title} />} maxWidth={760}>
       <View style={{ gap: 8, paddingTop: 8 }}>
         <Text variant="h1">{title}</Text>
         <Text variant="caption">Last updated {LEGAL_UPDATED}</Text>

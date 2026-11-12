@@ -33,7 +33,7 @@ function Reviews({ orgId }: { orgId: string }) {
   const names = useProfileNames([...(queue.data ?? []).map((r) => r.assignments.volunteer_id), ...toConfirm.map((a) => a.volunteer_id)]);
 
   return (
-    <Screen maxWidth={1100} refreshing={queue.isRefetching} onRefresh={() => { queue.refetch(); assignments.refetch(); }}>
+    <Screen title={t('org.reviewsTitle')} maxWidth={1100} refreshing={queue.isRefetching} onRefresh={() => { queue.refetch(); assignments.refetch(); }}>
       <View style={{ gap: 4, paddingTop: 8 }}>
         <Text variant="h1">{t('org.reviewsTitle')}</Text>
         <Text variant="caption">{t('org.tasksNote')}</Text>

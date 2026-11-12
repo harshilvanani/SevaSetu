@@ -19,7 +19,7 @@ export default function JoinedScreen() {
   const text = useTaskText();
   const [calMsg, setCalMsg] = useState<string | null>(null);
 
-  if (!task.data) return <Screen><Text variant="caption">{t('common.loading')}</Text></Screen>;
+  if (!task.data) return <Screen title={t('join.youreIn')}><Text variant="caption">{t('common.loading')}</Text></Screen>;
   const s = task.data;
   const n = Number(qty ?? 1);
   const start = taskStart(s);
@@ -39,7 +39,7 @@ export default function JoinedScreen() {
   };
 
   return (
-    <Screen
+    <Screen title={t('join.youreIn')}
       maxWidth={560}
       edges={['top', 'bottom']}
       footer={

@@ -65,7 +65,7 @@ export default function NotificationsScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   return (
-    <Screen
+    <Screen title={t('notifications.title')}
       header={<TopBar onBack={back} title={t('notifications.title')} />}
       maxWidth={720}
       refreshing={list.isRefetching}

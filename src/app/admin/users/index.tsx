@@ -22,7 +22,7 @@ export default function AdminUsers() {
   const open = (id: string) => router.push({ pathname: '/admin/users/[id]', params: { id } });
 
   return (
-    <Screen edges={[]} maxWidth={1200} refreshing={users.isRefetching} onRefresh={() => users.refetch()}>
+    <Screen title={t('admin.nav.users')} edges={[]} maxWidth={1200} refreshing={users.isRefetching} onRefresh={() => users.refetch()}>
       <Text variant="h1" style={{ paddingTop: 16 }}>{t('admin.nav.users')}</Text>
       <View style={{ flexDirection: 'row' }}>
         <SearchField value={q} onChangeText={setQ} placeholder={t('admin.search')} />

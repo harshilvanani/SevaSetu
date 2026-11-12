@@ -31,7 +31,7 @@ export default function AdminOrganizations() {
   const open = (id: string) => router.push({ pathname: '/admin/organizations/[id]', params: { id } });
 
   return (
-    <Screen edges={[]} maxWidth={1200} refreshing={orgs.isRefetching} onRefresh={() => orgs.refetch()}>
+    <Screen title={t('admin.nav.organizations')} edges={[]} maxWidth={1200} refreshing={orgs.isRefetching} onRefresh={() => orgs.refetch()}>
       <Text variant="h1" style={{ paddingTop: 16 }}>{t('admin.nav.organizations')}</Text>
       <Row gap={8} wrap>
         {FILTERS.map((f) => (

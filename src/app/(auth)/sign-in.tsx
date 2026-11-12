@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router, useLocalSearchParams } from 'expo-router';
+import Head from 'expo-router/head';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +44,9 @@ export default function SignInScreen() {
       style={{ flex: 1, backgroundColor: colors.cream }}
       contentContainerStyle={[{ flexGrow: 1 }, isDesktop && { flexDirection: 'row' }]}
       keyboardShouldPersistTaps="handled">
+      <Head>
+        <title>{`${mode === 'signin' ? t('auth.signIn') : t('auth.createAccount')} · SevaSetu`}</title>
+      </Head>
       {isDesktop ? <BrandPanel /> : <MobileHeader topInset={insets.top} compact={!isPhone} />}
       <View style={[styles.formSide, isDesktop && { paddingVertical: 48 }]}>
         <View style={styles.form}>

@@ -19,7 +19,7 @@ export default function AvailabilityScreen() {
 
   if (!session) {
     return (
-      <Screen maxWidth={560}>
+      <Screen title={t('availability.title')} maxWidth={560}>
         <View style={{ paddingTop: 24, gap: 12 }}>
           <Text variant="h1">{t('profile.guestTitle')}</Text>
           <Text variant="body" color={colors.body}>{t('profile.guestBody')}</Text>
@@ -28,7 +28,7 @@ export default function AvailabilityScreen() {
       </Screen>
     );
   }
-  if (!profile || !existing.data) return <Screen><Text variant="caption">{t('common.loading')}</Text></Screen>;
+  if (!profile || !existing.data) return <Screen title={t('availability.title')}><Text variant="caption">{t('common.loading')}</Text></Screen>;
   return <PreferencesForm profile={profile} initialSlots={existing.data} />;
 }
 
@@ -68,7 +68,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
   const busy = saveSlots.isPending || saveProfile.isPending;
 
   return (
-    <Screen
+    <Screen title={t('availability.title')}
       maxWidth={960}
       footer={
         <Button title={saved ? t('availability.saved') : t('common.save')} icon={saved ? 'check' : undefined} size="lg" loading={busy} onPress={save} />

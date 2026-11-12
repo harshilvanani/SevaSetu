@@ -30,7 +30,7 @@ export default function AdminUser() {
 
   if (!user) {
     return (
-      <Screen edges={[]} header={<TopBar onBack={back} />}>
+      <Screen title={t('admin.nav.users')} edges={[]} header={<TopBar onBack={back} />}>
         {users.isPending ? <Text variant="caption">{t('common.loading')}</Text> : <EmptyState title={t('admin.users.noUsers')} />}
       </Screen>
     );
@@ -80,7 +80,7 @@ export default function AdminUser() {
     });
 
   return (
-    <Screen edges={[]} header={<TopBar onBack={back} title={isDesktop ? undefined : name} />} maxWidth={1100} refreshing={detail.isRefetching} onRefresh={() => { users.refetch(); detail.refetch(); }}>
+    <Screen title={t('admin.nav.users')} edges={[]} header={<TopBar onBack={back} title={isDesktop ? undefined : name} />} maxWidth={1100} refreshing={detail.isRefetching} onRefresh={() => { users.refetch(); detail.refetch(); }}>
       <Row gap={14} style={{ alignItems: 'flex-start' }}>
         <Avatar name={name} size={56} />
         <View style={{ flex: 1, gap: 4 }}>

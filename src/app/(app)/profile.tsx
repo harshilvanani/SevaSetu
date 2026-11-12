@@ -33,7 +33,7 @@ export default function ProfileScreen() {
 
   if (!session || !profile) {
     return (
-      <Screen maxWidth={560}>
+      <Screen title={t('profile.title')} maxWidth={560}>
         <View style={{ paddingTop: 24, gap: 12 }}>
           <Text variant="h1">{t('profile.guestTitle')}</Text>
           <Text variant="body" color={colors.body}>{t('profile.guestBody')}</Text>
@@ -80,7 +80,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Screen maxWidth={720}>
+    <Screen title={t('profile.title')} maxWidth={720}>
       <Row gap={14} style={{ paddingTop: 16 }}>
         <Avatar name={profile.full_name || profile.email || '?'} size={56} />
         <View style={{ flex: 1 }}>

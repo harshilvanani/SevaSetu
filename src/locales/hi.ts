@@ -2,6 +2,9 @@ import type { Strings } from './en';
 
 const hi: Strings = {
   common: {
+    notFoundTitle: 'पेज नहीं मिला',
+    notFoundBody: 'यह लिंक पुराना या गलत हो सकता है। चलिए आपको वापस सेवा खोजने पर ले चलते हैं।',
+    goHome: 'सेवासेतु पर जाएँ',
     appName: 'सेवासेतु',
     tagline: 'सेवा से दिलों को जोड़ना।',
     taglineLead: 'सेवा से',

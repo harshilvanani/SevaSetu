@@ -41,6 +41,14 @@ All of these live in the database, so no client can bypass them:
 - **Organizations** need platform-admin approval before they can create events.
 - **Verified hours.** Role tasks count the task's scheduled duration once the organizer marks the position as served. Quantity tasks count verified units × minutes-per-unit.
 
+## Website
+
+```bash
+npm run build:web
+```
+
+This builds the website into `dist/`: the web app, an `.htaccess` (HTTPS, deep links such as `/seva/<id>`, caching) and link-preview tags. Upload the contents of `dist/` to the site's `public_html`. Set `EXPO_PUBLIC_SITE_URL` in `.env` to the live address first.
+
 ## Database workflow
 
 ```bash

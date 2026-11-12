@@ -1,6 +1,9 @@
 // English strings — the source of truth. hi.ts and fr.ts must match this shape (enforced by type).
 const en = {
   common: {
+    notFoundTitle: 'Page not found',
+    notFoundBody: 'This link may be old or mistyped. Let’s get you back to finding seva.',
+    goHome: 'Go to SevaSetu',
     appName: 'SevaSetu',
     tagline: 'Connecting hearts through seva.',
     taglineLead: 'Connecting hearts',

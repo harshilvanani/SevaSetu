@@ -27,7 +27,7 @@ export default function TaskScreen() {
   return (
     <OrganizerGate>
       {() => (
-        <Screen header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={860}>
+        <Screen title={t('taskForm.newTitle')} header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={860}>
           <Text variant="h1">{taskId ? t('taskForm.editTitle') : t('taskForm.newTitle')}</Text>
           {event.data?.event.status === 'draft' ? <StepHeader step={2} /> : null}
           {event.data && (!taskId || task) ? (

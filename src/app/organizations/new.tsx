@@ -41,7 +41,7 @@ export default function NewOrganization() {
 
   if (done) {
     return (
-      <Screen maxWidth={560} header={<TopBar onBack={back} />}>
+      <Screen title={t('org.newTitle')} maxWidth={560} header={<TopBar onBack={back} />}>
         <View style={{ alignItems: 'center', gap: 14, paddingTop: 32 }}>
           <View style={{ width: 64, height: 64, borderRadius: 999, backgroundColor: colors.amberTint, alignItems: 'center', justifyContent: 'center' }}>
             <Icon name="clock" size={28} color={colors.amberText} />
@@ -55,7 +55,7 @@ export default function NewOrganization() {
   }
 
   return (
-    <Screen
+    <Screen title={t('org.newTitle')}
       maxWidth={560}
       header={<TopBar onBack={back} title={existing ? t('org.resubmitTitle') : t('org.newTitle')} />}
       footer={<Button title={existing ? t('org.resubmit') : t('org.submit')} size="lg" loading={create.isPending || resubmit.isPending} onPress={submit} />}>

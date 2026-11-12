@@ -72,7 +72,7 @@ export function OnboardingFrame({
   );
 
   return (
-    <Screen
+    <Screen title={title}
       maxWidth={isDesktop ? 1040 : 640}
       header={header}
       footer={

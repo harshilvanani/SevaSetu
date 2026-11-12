@@ -16,7 +16,7 @@ export default function NewEventScreen() {
   return (
     <OrganizerGate>
       {(org) => (
-        <Screen header={<TopBar onBack={back} title={t('eventForm.newTitle')} />} maxWidth={1080}>
+        <Screen title={t('eventForm.newTitle')} header={<TopBar onBack={back} title={t('eventForm.newTitle')} />} maxWidth={1080}>
           <View style={{ gap: 12 }}>
             <Text variant="h1">{t('eventForm.newTitle')}</Text>
             <Text variant="bodySm" color={colors.muted}>{t('eventForm.intro')}</Text>

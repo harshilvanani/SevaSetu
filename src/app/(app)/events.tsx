@@ -18,7 +18,7 @@ function EventsList({ orgId }: { orgId: string }) {
   const events = useOrgEvents(orgId);
   const all = [...(events.data ?? [])].sort((a, b) => b.starts_at.localeCompare(a.starts_at));
   return (
-    <Screen maxWidth={1100} refreshing={events.isRefetching} onRefresh={() => events.refetch()}>
+    <Screen title={t('org.events')} maxWidth={1100} refreshing={events.isRefetching} onRefresh={() => events.refetch()}>
       <Row style={{ justifyContent: 'space-between', paddingTop: 8 }}>
         <Text variant="h1">{t('org.events')}</Text>
         <Button title={t('org.createEvent')} icon="plus" onPress={() => router.push('/events/new')} />

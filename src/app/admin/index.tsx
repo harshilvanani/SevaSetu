@@ -22,7 +22,7 @@ export default function AdminOverview() {
   const o = overview.data;
 
   return (
-    <Screen edges={[]} maxWidth={1200} refreshing={overview.isRefetching} onRefresh={() => { overview.refetch(); orgs.refetch(); audit.refetch(); }}>
+    <Screen title={t('admin.nav.overview')} edges={[]} maxWidth={1200} refreshing={overview.isRefetching} onRefresh={() => { overview.refetch(); orgs.refetch(); audit.refetch(); }}>
       <Text variant="h1" style={{ paddingTop: 16 }}>{t('admin.nav.overview')}</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         <MetricCard label={t('admin.overview.users')} value={o?.users ?? '—'} sub={o ? t('admin.overview.usersNew', { count: o.users_7d }) : undefined} />

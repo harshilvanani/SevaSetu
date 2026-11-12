@@ -2,6 +2,9 @@ import type { Strings } from './en';
 
 const fr: Strings = {
   common: {
+    notFoundTitle: 'Page introuvable',
+    notFoundBody: 'Ce lien est peut-être ancien ou mal saisi. Revenons à la recherche de seva.',
+    goHome: 'Aller à SevaSetu',
     appName: 'SevaSetu',
     tagline: 'Relier les cœurs par la seva.',
     taglineLead: 'Relier les cœurs',

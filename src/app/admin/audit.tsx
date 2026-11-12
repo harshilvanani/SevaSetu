@@ -20,7 +20,7 @@ export default function AdminAudit() {
   const label = (action: string) => t(`admin.audit.actions.${action}`, { defaultValue: action });
 
   return (
-    <Screen edges={[]} maxWidth={1200} refreshing={audit.isRefetching} onRefresh={() => audit.refetch()}>
+    <Screen title={t('admin.nav.audit')} edges={[]} maxWidth={1200} refreshing={audit.isRefetching} onRefresh={() => audit.refetch()}>
       <Text variant="h1" style={{ paddingTop: 16 }}>{t('admin.nav.audit')}</Text>
       {audit.isPending ? (
         <Text variant="caption">{t('common.loading')}</Text>

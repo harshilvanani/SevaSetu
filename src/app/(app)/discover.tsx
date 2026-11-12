@@ -127,7 +127,7 @@ export default function DiscoverScreen() {
   };
 
   return (
-    <Screen refreshing={refreshing} onRefresh={refresh}>
+    <Screen title={t('nav.discover')} refreshing={refreshing} onRefresh={refresh}>
       <Row style={{ justifyContent: 'space-between' }}>
         {session ? (
           <Pressable

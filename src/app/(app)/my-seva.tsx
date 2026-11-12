@@ -47,7 +47,7 @@ export default function MySevaScreen() {
 
   if (!session) {
     return (
-      <Screen maxWidth={560}>
+      <Screen title={t('mySeva.title')} maxWidth={560}>
         <View style={{ paddingTop: 24, gap: 12 }}>
           <Text variant="h1">{t('profile.guestTitle')}</Text>
           <Text variant="body" color={colors.body}>{t('profile.guestBody')}</Text>
@@ -74,7 +74,7 @@ export default function MySevaScreen() {
   if (!isDesktop && selected) {
     return (
       <>
-        <Screen header={<TopBar title={t('mySeva.title')} onBack={() => select(null)} />} maxWidth={720}>
+        <Screen title={t('mySeva.title')} header={<TopBar title={t('mySeva.title')} onBack={() => select(null)} />} maxWidth={720}>
           <AssignmentDetail a={selected} onReport={() => setReportOpen(true)} inlineReport={false} />
         </Screen>
         <ReportSheet a={selected} visible={reportOpen} onClose={() => setReportOpen(false)} />
@@ -127,7 +127,7 @@ export default function MySevaScreen() {
   if (isDesktop) {
     const detail = selected ?? list[0] ?? null;
     return (
-      <Screen maxWidth={1240} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
+      <Screen title={t('mySeva.title')} maxWidth={1240} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
         <Row gap={28} style={{ alignItems: 'flex-start', paddingTop: 8 }}>
           {listView}
           <View style={{ flex: 1.3 }}>
@@ -145,7 +145,7 @@ export default function MySevaScreen() {
   }
 
   return (
-    <Screen refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
+    <Screen title={t('mySeva.title')} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
       {listView}
     </Screen>
   );

@@ -53,7 +53,7 @@ export default function AdminEvents() {
     ) : null;
 
   return (
-    <Screen edges={[]} maxWidth={1200} refreshing={events.isRefetching} onRefresh={() => events.refetch()}>
+    <Screen title={t('admin.nav.events')} edges={[]} maxWidth={1200} refreshing={events.isRefetching} onRefresh={() => events.refetch()}>
       <Text variant="h1" style={{ paddingTop: 16 }}>{t('admin.nav.events')}</Text>
       <Row gap={8} wrap>
         {(['published', 'draft', 'completed', 'cancelled', 'all'] as Filter[]).map((f) => (

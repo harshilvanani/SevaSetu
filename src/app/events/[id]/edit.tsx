@@ -17,7 +17,7 @@ export default function EditEventScreen() {
   return (
     <OrganizerGate>
       {(org) => (
-        <Screen header={<TopBar onBack={back} title={t('eventForm.editTitle')} />} maxWidth={1080}>
+        <Screen title={t('eventForm.editTitle')} header={<TopBar onBack={back} title={t('eventForm.editTitle')} />} maxWidth={1080}>
           <Text variant="h1">{t('eventForm.editTitle')}</Text>
           {event.data?.event.status === 'draft' ? <StepHeader step={1} /> : null}
           {event.data ? (

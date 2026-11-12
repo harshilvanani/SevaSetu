@@ -39,7 +39,7 @@ export default function ManageEventScreen() {
   return (
     <OrganizerGate>
       {() => (
-        <Screen header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={1100} refreshing={event.isRefetching} onRefresh={() => event.refetch()}>
+        <Screen title={t('org.events')} header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={1100} refreshing={event.isRefetching} onRefresh={() => event.refetch()}>
           {event.data ? <Manage event={event.data.event} /> : <Text variant="caption">{t('common.loading')}</Text>}
         </Screen>
       )}

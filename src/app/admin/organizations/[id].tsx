@@ -25,7 +25,7 @@ export default function AdminOrganization() {
 
   if (!detail.data?.org) {
     return (
-      <Screen edges={[]} header={<TopBar onBack={back} />}>
+      <Screen title={t('admin.nav.organizations')} edges={[]} header={<TopBar onBack={back} />}>
         {detail.isPending ? <Text variant="caption">{t('common.loading')}</Text> : <EmptyState title={t('admin.noOrgs')} />}
       </Screen>
     );
@@ -63,7 +63,7 @@ export default function AdminOrganization() {
   };
 
   return (
-    <Screen edges={[]} header={<TopBar onBack={back} title={isDesktop ? undefined : org.name} />} maxWidth={1100} refreshing={detail.isRefetching} onRefresh={() => detail.refetch()}>
+    <Screen title={t('admin.nav.organizations')} edges={[]} header={<TopBar onBack={back} title={isDesktop ? undefined : org.name} />} maxWidth={1100} refreshing={detail.isRefetching} onRefresh={() => detail.refetch()}>
       <View style={{ gap: 8 }}>
         <Row gap={10} wrap>
           <Text variant="h1" style={{ flexShrink: 1 }}>{org.name}</Text>

@@ -35,6 +35,12 @@ place(silhouette(full_a), 1024, 560).save(f'{out}/android-icon-monochrome.png')
 place(full_a, 1024, 1000).save(f'{out}/splash-icon.png')
 place(mark_a, 48, 44, (255, 255, 255, 255)).convert('RGB').save(f'{out}/favicon.png')
 place(silhouette(mark_a), 96, 90).save(f'{out}/notification-icon.png')
+# Link-preview image (WhatsApp, social): full logo centred on white, 1200x630.
+og = Image.new('RGBA', (1200, 630), (255, 255, 255, 255))
+logo = full_a.resize((640, round(full_a.height * 640 / full_a.width)), Image.LANCZOS)
+og.alpha_composite(logo, ((1200 - logo.width) // 2, (630 - logo.height) // 2))
+og.convert('RGB').save(f'{out}/og-image.png')
+place(full_a, 180, 150, (255, 255, 255, 255)).convert('RGB').save(f'{out}/apple-touch-icon.png')
 m = mark_a.resize((512, round(mark_a.height * 512 / mark_a.width)), Image.LANCZOS); m.save(f'{out}/logo-mark.png')
 print('done', m.size)
 # sample brand colours from the wordmark
