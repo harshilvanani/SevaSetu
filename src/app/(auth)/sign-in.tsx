@@ -108,9 +108,15 @@ export default function SignInScreen() {
             <Text variant="bodySm" weight="medium">{t('auth.browse')}</Text>
           </Pressable>
 
-          <Text variant="small" color={colors.muted} align="center" style={{ lineHeight: 19, fontFamily: fonts.regular }}>
-            {t('auth.legal')}
-          </Text>
+          <View style={{ gap: 6 }}>
+            <Text variant="small" color={colors.muted} align="center" style={{ lineHeight: 19, fontFamily: fonts.regular }}>
+              {t('auth.legal')}
+            </Text>
+            <Row gap={16} style={{ justifyContent: 'center' }}>
+              <Link href="/terms" style={styles.legalLink}>{t('auth.terms')}</Link>
+              <Link href="/privacy" style={styles.legalLink}>{t('auth.privacy')}</Link>
+            </Row>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -371,6 +377,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sand,
   },
   invite: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: 14, backgroundColor: colors.amberTint },
+  legalLink: { color: colors.purple, fontFamily: fonts.semibold, fontSize: 13, padding: 4 },
   blocked: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: 14, backgroundColor: colors.dangerTint },
   notice: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: 12, backgroundColor: colors.purpleTint, alignItems: 'center' },
   mobileHeader: {

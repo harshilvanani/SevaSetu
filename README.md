@@ -53,6 +53,10 @@ npm run db:types     # regenerate src/lib/database.types.ts
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint and unit tests, plus the pgTAP suite against a local Supabase (`supabase db start && supabase test db`).
 
+## Email links
+
+Account-confirmation and password-reset emails always link to the **website** (`EXPO_PUBLIC_SITE_URL`), whichever app the person signed up from, so the links work on any device. Set it to the live web address, and add `<that address>/**` to Supabase's redirect URLs.
+
 ## One-time Supabase dashboard setup
 
 In **Authentication → URL Configuration**:

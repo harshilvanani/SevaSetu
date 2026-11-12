@@ -148,6 +148,15 @@ export default function ProfileScreen() {
 
       <LanguagePicker value={(profile.locale as Locale) ?? 'en'} onChange={setLocale} />
 
+      <Row gap={16} style={{ justifyContent: 'center' }}>
+        <Pressable accessibilityRole="link" onPress={() => router.push('/privacy')} style={{ padding: 6 }}>
+          <Text variant="label" color={colors.purple}>{t('auth.privacy')}</Text>
+        </Pressable>
+        <Pressable accessibilityRole="link" onPress={() => router.push('/terms')} style={{ padding: 6 }}>
+          <Text variant="label" color={colors.purple}>{t('auth.terms')}</Text>
+        </Pressable>
+      </Row>
+
       <Button title={t('common.signOut')} icon="logout" variant="outline" onPress={signOut} />
       <Pressable accessibilityRole="button" onPress={confirmDelete} style={{ alignSelf: 'center', padding: 12 }}>
         <Text variant="bodySm" color={colors.danger}>{t('profile.deleteAccount')}</Text>

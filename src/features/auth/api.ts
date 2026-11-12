@@ -4,11 +4,18 @@ import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
+import { siteUrl } from '@/lib/site';
 import { supabase } from '@/lib/supabase';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export const redirectTo = (path: string) => makeRedirectUri({ scheme: 'sevasetu', path });
+
+/** Links sent by email open the website (works for everyone, any device); app deep link only as a fallback. */
+const emailLink = (path: string) => {
+  const site = siteUrl();
+  return site ? `${site}/${path}` : redirectTo(path);
+};
 
 export async function signInWithEmail(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
@@ -19,7 +26,7 @@ export async function signUpWithEmail(name: string, email: string, password: str
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
-    options: { data: { full_name: name.trim() }, emailRedirectTo: redirectTo('auth/callback') },
+    options: { data: { full_name: name.trim() }, emailRedirectTo: emailLink('auth/callback') },
   });
   if (error) throw error;
   // Supabase returns a user with no identities when the email is already registered.
@@ -31,7 +38,7 @@ export async function signUpWithEmail(name: string, email: string, password: str
 
 export async function sendPasswordReset(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-    redirectTo: redirectTo('reset-password'),
+    redirectTo: emailLink('reset-password'),
   });
   if (error) throw error;
 }

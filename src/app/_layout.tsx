@@ -92,6 +92,8 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />
+      <Stack.Screen name="privacy" />
+      <Stack.Screen name="terms" />
     </Stack>
   );
 }
