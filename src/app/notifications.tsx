@@ -22,6 +22,9 @@ const ICONS: Record<string, IconName> = {
   reminder: 'calendar',
   org_pending: 'shield',
   org_reviewed: 'users',
+  event_cancelled: 'calendar',
+  account_unblocked: 'check',
+  admin_role: 'shield',
 };
 
 export default function NotificationsScreen() {

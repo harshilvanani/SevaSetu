@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          target_id: string
+          target_label: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id: string
+          target_label?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id?: string
+          target_label?: string | null
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_actions_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           cancelled_at: string | null
@@ -381,6 +429,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          blocked_at: string | null
+          blocked_reason: string | null
           city: string | null
           created_at: string
           email: string | null
@@ -400,6 +450,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
           city?: string | null
           created_at?: string
           email?: string | null
@@ -419,6 +471,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
           city?: string | null
           created_at?: string
           email?: string | null
@@ -742,6 +796,43 @@ export type Database = {
         Args: { p_email: string; p_org: string }
         Returns: string
       }
+      admin_cancel_event: {
+        Args: { p_event: string; p_reason: string }
+        Returns: undefined
+      }
+      admin_list_users: {
+        Args: { p_query?: string }
+        Returns: {
+          assignment_count: number
+          blocked_at: string
+          blocked_reason: string
+          city: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_platform_admin: boolean
+          last_sign_in_at: string
+          onboarded: boolean
+          org_count: number
+          providers: string[]
+        }[]
+      }
+      admin_overview: { Args: never; Returns: Json }
+      admin_review_organization: {
+        Args: { p_action: string; p_org: string; p_reason?: string }
+        Returns: undefined
+      }
+      admin_set_platform_admin: {
+        Args: { p_admin: boolean; p_user: string }
+        Returns: undefined
+      }
+      admin_set_user_blocked: {
+        Args: { p_blocked: boolean; p_reason?: string; p_user: string }
+        Returns: Json
+      }
+      assert_not_blocked: { Args: never; Returns: undefined }
+      assert_platform_admin: { Args: never; Returns: undefined }
       can_manage_org: { Args: { p_org: string }; Returns: boolean }
       can_see_profile: { Args: { p_user: string }; Returns: boolean }
       can_view_event: { Args: { p_event: string }; Returns: boolean }
@@ -763,11 +854,22 @@ export type Database = {
         Args: { p_days?: number; p_task: string; p_users: string[] }
         Returns: number
       }
+      is_blocked: { Args: { p_user?: string }; Returns: boolean }
       is_event_participant: { Args: { p_event: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       join_task: { Args: { p_qty?: number; p_task: string }; Returns: Json }
       leave_task: { Args: { p_assignment: string }; Returns: Json }
+      log_admin_action: {
+        Args: {
+          p_action: string
+          p_label: string
+          p_reason: string
+          p_target: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       notify: {
         Args: {
           p_body?: string
@@ -780,8 +882,13 @@ export type Database = {
       }
       publish_event: { Args: { p_event: string }; Returns: undefined }
       refresh_task_counters: { Args: { p_task: string }; Returns: undefined }
-      review_organization: {
-        Args: { p_approve: boolean; p_note?: string; p_org: string }
+      resubmit_organization: {
+        Args: {
+          p_city?: string
+          p_description?: string
+          p_name: string
+          p_org: string
+        }
         Returns: undefined
       }
       review_progress: {
@@ -836,7 +943,7 @@ export type Database = {
         | "expired"
         | "revoked"
       org_role: "owner" | "organizer"
-      org_status: "pending" | "approved" | "rejected"
+      org_status: "pending" | "approved" | "rejected" | "suspended"
       participation_mode: "onsite" | "virtual" | "hybrid"
       report_status: "pending" | "approved" | "rejected"
       serve_mode: "onsite" | "virtual" | "either"
@@ -981,7 +1088,7 @@ export const Constants = {
         "revoked",
       ],
       org_role: ["owner", "organizer"],
-      org_status: ["pending", "approved", "rejected"],
+      org_status: ["pending", "approved", "rejected", "suspended"],
       participation_mode: ["onsite", "virtual", "hybrid"],
       report_status: ["pending", "approved", "rejected"],
       serve_mode: ["onsite", "virtual", "either"],

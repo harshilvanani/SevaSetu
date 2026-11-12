@@ -132,6 +132,17 @@ export function useCreateOrganization() {
   });
 }
 
+export function useResubmitOrganization() {
+  const { refreshProfile } = useAuth();
+  return useMutation({
+    mutationFn: async (v: { id: string; name: string; city: string; description: string }) => {
+      const { error } = await supabase.rpc('resubmit_organization', { p_org: v.id, p_name: v.name, p_city: v.city, p_description: v.description });
+      if (error) throw error;
+    },
+    onSuccess: () => refreshProfile(),
+  });
+}
+
 export type EventInput = {
   title: string;
   description: string;

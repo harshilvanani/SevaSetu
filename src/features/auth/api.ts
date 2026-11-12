@@ -106,5 +106,6 @@ export function authErrorKey(e: unknown): string {
   if (code === 'invalid_credentials' || /invalid login credentials/i.test(msg)) return 'auth.errors.invalidCredentials';
   if (code === 'email_not_confirmed' || /email not confirmed/i.test(msg)) return 'auth.errors.emailNotConfirmed';
   if (code === 'user_already_exists' || /already registered/i.test(msg)) return 'auth.errors.userExists';
+  if (code === 'user_banned' || /banned/i.test(msg)) return 'auth.errors.blocked';
   return 'auth.errors.generic';
 }

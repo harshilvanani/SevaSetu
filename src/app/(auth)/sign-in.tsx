@@ -16,6 +16,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Badge } from '@/components/Chip';
 import { Segmented } from '@/components/Segmented';
 import { Text } from '@/components/Text';
+import { useAppStore } from '@/lib/store';
 import {
   appleAuthAvailable,
   authErrorKey,
@@ -34,6 +35,8 @@ export default function SignInScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ mode?: Mode; invite?: string }>();
   const [mode, setMode] = useState<Mode>(params.mode === 'create' ? 'create' : 'signin');
+  const authNotice = useAppStore((s) => s.authNotice);
+  const setAuthNotice = useAppStore((s) => s.setAuthNotice);
 
   return (
     <ScrollView
@@ -51,6 +54,14 @@ export default function SignInScreen() {
                 <Text variant="caption" color={colors.amberText}>{t('auth.invitedBody')}</Text>
               </View>
             </View>
+          ) : null}
+
+          {authNotice ? (
+            <Pressable accessibilityRole="alert" onPress={() => setAuthNotice(null)} style={styles.blocked}>
+              <Icon name="lock" size={18} color={colors.danger} />
+              <Text variant="bodySm" color={colors.danger} style={{ flex: 1 }}>{authNotice}</Text>
+              <Icon name="x" size={16} color={colors.danger} />
+            </Pressable>
           ) : null}
 
           <View style={{ gap: 6 }}>
@@ -360,6 +371,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sand,
   },
   invite: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: 14, backgroundColor: colors.amberTint },
+  blocked: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: 14, backgroundColor: colors.dangerTint },
   notice: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: 12, backgroundColor: colors.purpleTint, alignItems: 'center' },
   mobileHeader: {
     paddingHorizontal: 24,

@@ -76,6 +76,13 @@ export default function AppShell() {
                 ))}
               </View>
             ) : null}
+            {profile?.is_platform_admin ? (
+              <Pressable accessibilityRole="link" onPress={() => router.push('/admin')} style={({ pressed }) => [styles.adminLink, pressed && { opacity: 0.85 }]}>
+                <Icon name="shield" size={18} color={colors.purpleDark} />
+                <Text style={{ flex: 1, fontSize: 14, fontFamily: fonts.semibold, color: colors.purpleDark }}>{t('profile.adminConsole')}</Text>
+                {badges.pendingOrgs ? <CountBadge n={badges.pendingOrgs} /> : null}
+              </Pressable>
+            ) : null}
             <View accessibilityRole="tablist" style={{ gap: 4 }}>
               {tabs.map((tab) => {
                 const active = isActive(tab);
@@ -183,6 +190,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   modeSwitch: { flexDirection: 'row', padding: 4, borderRadius: 12, backgroundColor: colors.track },
+  adminLink: {
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    borderRadius: radius.control,
+    borderWidth: 1,
+    borderColor: '#E6D6F0',
+    backgroundColor: '#FBF7FD',
+  },
   modeTab: { flex: 1, height: 36, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   modeTabActive: { backgroundColor: colors.white },
   sideItem: { height: 44, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, borderRadius: radius.control },

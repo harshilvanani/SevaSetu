@@ -121,8 +121,19 @@ export default function ProfileScreen() {
               <Icon name="users" size={20} color={colors.subtle} />
               <Text variant="bodySm" weight="medium" style={{ flex: 1 }}>{m.organizations?.name}</Text>
               {m.organizations?.status === 'pending' ? <Badge label={t('profile.orgPending')} tone="amber" /> : null}
-              {m.organizations?.status === 'rejected' ? <Badge label="Not approved" tone="danger" /> : null}
+              {m.organizations?.status === 'rejected' ? <Badge label={t('profile.orgRejected')} tone="danger" /> : null}
+              {m.organizations?.status === 'suspended' ? <Badge label={t('profile.orgSuspended')} tone="danger" /> : null}
             </Row>
+            {(m.organizations?.status === 'rejected' || m.organizations?.status === 'suspended') && m.organizations.review_note ? (
+              <Text variant="caption" style={{ paddingHorizontal: 16, paddingBottom: 10, marginTop: -4 }}>
+                {t('profile.reviewNote', { note: m.organizations.review_note })}
+              </Text>
+            ) : null}
+            {m.organizations?.status === 'rejected' && m.role === 'owner' ? (
+              <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+                <Button title={t('profile.resubmit')} variant="outline" onPress={() => router.push({ pathname: '/organizations/new', params: { id: m.org_id } })} />
+              </View>
+            ) : null}
           </View>
         ))}
         <Divider color={colors.cardBorder} />
@@ -130,7 +141,7 @@ export default function ProfileScreen() {
         {profile.is_platform_admin ? (
           <>
             <Divider color={colors.cardBorder} />
-            <MenuItem icon="shield" label={t('profile.adminPanel')} onPress={() => router.push('/admin')} />
+            <MenuItem icon="shield" label={t('profile.adminConsole')} onPress={() => router.push('/admin')} />
           </>
         ) : null}
       </Card>

@@ -32,7 +32,12 @@ export function notificationHref(type: string, data: NotificationData) {
     case 'org_pending':
       return '/admin' as const;
     case 'org_reviewed':
+    case 'account_unblocked':
       return '/profile' as const;
+    case 'event_cancelled':
+      return '/my-seva' as const;
+    case 'admin_role':
+      return '/admin' as const;
     default:
       return null;
   }

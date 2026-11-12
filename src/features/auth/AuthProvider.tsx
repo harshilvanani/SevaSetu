@@ -1,8 +1,10 @@
 import type { Session } from '@supabase/supabase-js';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 
 import i18n, { type Locale, SUPPORTED_LOCALES } from '@/lib/i18n';
+import { useAppStore } from '@/lib/store';
 import { supabase, type Tables } from '@/lib/supabase';
 
 export type Profile = Tables<'profiles'>;
@@ -52,6 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // Apply the profile's language preference.
+  // A blocked account is signed out with an explanation (the database also refuses its actions).
+  const blockedAt = profileQuery.data?.profile.blocked_at;
+  useEffect(() => {
+    if (!blockedAt) return;
+    useAppStore.getState().setAuthNotice(i18n.t('auth.errors.blocked'));
+    supabase.auth.signOut().finally(() => router.replace('/sign-in'));
+  }, [blockedAt]);
+
   const locale = profileQuery.data?.profile.locale;
   useEffect(() => {
     if (locale && (SUPPORTED_LOCALES as readonly string[]).includes(locale) && i18n.language !== locale) {

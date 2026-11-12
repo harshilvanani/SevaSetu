@@ -21,10 +21,20 @@ export function OrganizerGate({ children }: { children: (org: Membership['organi
   const { org } = useActiveOrg();
   if (org) return <>{children(org)}</>;
   const pending = memberships.find((m) => m.organizations?.status === 'pending');
+  const suspended = memberships.find((m) => m.organizations?.status === 'suspended');
+  const rejected = memberships.find((m) => m.organizations?.status === 'rejected' && m.role === 'owner');
   return (
     <Screen maxWidth={640}>
       <View style={{ paddingTop: 24 }}>
-        {pending ? (
+        {suspended ? (
+          <EmptyState title={t('org.suspendedTitle', { name: suspended.organizations.name })} body={[t('org.suspendedBody'), suspended.organizations.review_note].filter(Boolean).join('\n\n')}>
+            <Button title={t('profile.switchToVolunteer')} variant="outline" onPress={() => router.navigate('/profile')} />
+          </EmptyState>
+        ) : rejected && !pending ? (
+          <EmptyState title={t('org.rejectedTitle', { name: rejected.organizations.name })} body={rejected.organizations.review_note ?? undefined}>
+            <Button title={t('profile.resubmit')} onPress={() => router.push({ pathname: '/organizations/new', params: { id: rejected.org_id } })} />
+          </EmptyState>
+        ) : pending ? (
           <EmptyState title={t('org.pendingTitle', { name: pending.organizations.name })} body={t('org.pendingBody')}>
             <Button title={t('profile.switchToVolunteer')} variant="outline" onPress={() => router.navigate('/profile')} />
           </EmptyState>
