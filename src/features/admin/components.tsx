@@ -11,11 +11,12 @@ import { Logo } from '@/components/Logo';
 import { Text } from '@/components/Text';
 import { colors, fonts, radius } from '@/theme/tokens';
 
-const NAV: { key: 'overview' | 'organizations' | 'users' | 'events' | 'audit' | 'demo'; href: '/admin' | '/admin/organizations' | '/admin/users' | '/admin/events' | '/admin/audit' | '/admin/demo'; icon: IconName }[] = [
+const NAV: { key: 'overview' | 'organizations' | 'users' | 'events' | 'templates' | 'audit' | 'demo'; href: '/admin' | '/admin/organizations' | '/admin/users' | '/admin/events' | '/admin/templates' | '/admin/audit' | '/admin/demo'; icon: IconName }[] = [
   { key: 'overview', href: '/admin', icon: 'grid' },
   { key: 'organizations', href: '/admin/organizations', icon: 'users' },
   { key: 'users', href: '/admin/users', icon: 'user' },
   { key: 'events', href: '/admin/events', icon: 'calendar' },
+  { key: 'templates', href: '/admin/templates', icon: 'bookmark' },
   { key: 'audit', href: '/admin/audit', icon: 'clipboard' },
   { key: 'demo', href: '/admin/demo', icon: 'swap' },
 ];

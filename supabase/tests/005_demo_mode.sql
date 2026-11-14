@@ -2,6 +2,9 @@
 begin;
 select plan(14);
 
+-- the hosted project already has demo accounts: remove them inside this rolled-back test
+delete from auth.users where id in (select user_id from demo_accounts);
+
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000d001', 'admin@test.dev', '{"full_name":"Ada Admin"}'),
   ('00000000-0000-0000-0000-00000000d002', 'real@test.dev', '{"full_name":"Real Person"}'),

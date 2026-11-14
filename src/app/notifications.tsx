@@ -25,6 +25,10 @@ const ICONS: Record<string, IconName> = {
   event_cancelled: 'calendar',
   account_unblocked: 'check',
   admin_role: 'shield',
+  event_request: 'users',
+  event_approved: 'check',
+  event_declined: 'x',
+  hours_logged: 'clock',
 };
 
 export default function NotificationsScreen() {

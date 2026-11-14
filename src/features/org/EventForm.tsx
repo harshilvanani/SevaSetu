@@ -57,6 +57,7 @@ export function StepHeader({ step }: { step: 1 | 2 | 3 }) {
 export function EventForm({
   orgName,
   initial,
+  defaults,
   details,
   onSubmit,
   busy,
@@ -64,6 +65,8 @@ export function EventForm({
 }: {
   orgName: string;
   initial?: Tables<'events'>;
+  /** Starting values for a new event (from a template). */
+  defaults?: { title: string; visibility: Enums<'visibility'> };
   details?: Tables<'event_private_details'> | null;
   onSubmit: (v: EventInput) => Promise<void>;
   busy: boolean;
@@ -71,7 +74,7 @@ export function EventForm({
 }) {
   const { t } = useTranslation();
   const { isDesktop } = useLayout();
-  const [title, setTitle] = useState(initial?.title ?? '');
+  const [title, setTitle] = useState(initial?.title ?? defaults?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [start, setStart] = useState<Date | null>(initial ? new Date(initial.starts_at) : defaultDate());
   const [end, setEnd] = useState<Date | null>(initial ? new Date(initial.ends_at) : new Date(defaultDate().getTime() + 3 * 3_600_000));
@@ -81,7 +84,7 @@ export function EventForm({
   const [city, setCity] = useState(initial?.city ?? '');
   const [online, setOnline] = useState(details?.online_details ?? '');
   const [contact, setContact] = useState(details?.contact_info ?? '');
-  const [visibility, setVisibility] = useState<Enums<'visibility'>>(initial?.visibility ?? 'public');
+  const [visibility, setVisibility] = useState<Enums<'visibility'>>(initial?.visibility ?? defaults?.visibility ?? 'public');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const needsVenue = mode !== 'virtual';
@@ -120,6 +123,7 @@ export function EventForm({
         <TextField label={t('eventForm.title')} value={title} onChangeText={setTitle} error={errors.title} placeholder="Winter Care Kit Drive" />
         <TextField
           label={t('eventForm.description')}
+          optional
           value={description}
           onChangeText={setDescription}
           multiline

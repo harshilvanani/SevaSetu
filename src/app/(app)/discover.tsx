@@ -23,6 +23,7 @@ import {
   useMyInvitations,
 } from '@/features/seva/api';
 import { ActiveSevaCard, SevaCard, SevaDateRow, SevaRow } from '@/features/seva/components';
+import { PrivateEventsSection } from '@/features/seva/PrivateEvents';
 import { useNavBadges } from '@/features/shell/badges';
 import { firstName, greetingKey } from '@/lib/format';
 import { colors, fonts, radius } from '@/theme/tokens';
@@ -212,6 +213,8 @@ export default function DiscoverScreen() {
           </Grid>
         </View>
       ) : null}
+
+      {session && !filtering ? <PrivateEventsSection /> : null}
 
       {session && !hasHistory && !filtering && goodFirst.length ? (
         <View style={{ gap: 12 }}>

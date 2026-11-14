@@ -1,7 +1,7 @@
 -- Core workflow tests: capacity protection, private visibility, progress review, permissions.
 -- Run with `supabase test db` (CI) or `node scripts/db.mjs test` (hosted project, rolled back).
 begin;
-select plan(30);
+select plan(31);
 
 -- ---------------------------------------------------------------- fixtures
 insert into auth.users (id, email, raw_user_meta_data) values
@@ -22,11 +22,13 @@ insert into events (id, org_id, title, starts_at, ends_at, mode, address, status
   ('00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-00000000000a', 'Published event',
    now() + interval '3 days', now() + interval '3 days 3 hours', 'onsite', '50 Maple Ave', 'draft', 'public'),
   ('00000000-0000-0000-0000-0000000000e2', '00000000-0000-0000-0000-00000000000a', 'Draft event',
-   now() + interval '5 days', now() + interval '5 days 2 hours', 'virtual', null, 'draft', 'public');
+   now() + interval '5 days', now() + interval '5 days 2 hours', 'virtual', null, 'draft', 'public'),
+  ('00000000-0000-0000-0000-0000000000e3', '00000000-0000-0000-0000-00000000000a', 'Invite-only event',
+   now() + interval '4 days', now() + interval '4 days 2 hours', 'virtual', null, 'draft', 'private');
 
 insert into seva_tasks (id, event_id, title, type, target_qty, unit, max_per_volunteer, minutes_per_unit, visibility) values
   ('00000000-0000-0000-0000-0000000000f1', '00000000-0000-0000-0000-0000000000e1', 'Make calls', 'quantity', 10, 'calls', 6, 30, 'public'),
-  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000e1', 'Private coordination', 'quantity', 5, 'items', 5, 0, 'private');
+  ('00000000-0000-0000-0000-0000000000f3', '00000000-0000-0000-0000-0000000000e3', 'Private coordination', 'quantity', 5, 'items', 5, 0, 'private');
 insert into seva_tasks (id, event_id, title, type, positions, starts_at, ends_at) values
   ('00000000-0000-0000-0000-0000000000f2', '00000000-0000-0000-0000-0000000000e1', 'Welcome desk', 'role', 1,
    now() + interval '3 days', now() + interval '3 days 2 hours');
@@ -36,6 +38,7 @@ insert into seva_tasks (id, event_id, title, type, positions) values
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 set local role authenticated;
 select lives_ok($$ select publish_event('00000000-0000-0000-0000-0000000000e1') $$, 'organizer publishes event');
+select lives_ok($$ select publish_event('00000000-0000-0000-0000-0000000000e3') $$, 'organizer publishes the invite-only event');
 select is((select status::text from seva_tasks where id = '00000000-0000-0000-0000-0000000000f1'), 'open', 'tasks open on publish');
 
 -- ---------------------------------------------------------------- anon visibility
@@ -77,7 +80,7 @@ select is((select count(*)::int from assignments), 1, 'volunteer only sees own a
 reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 set local role authenticated;
-select is(invite_to_task('00000000-0000-0000-0000-0000000000f3', array['00000000-0000-0000-0000-0000000000b3'::uuid]), 1, 'organizer invites kavya');
+select is(invite_to_event('00000000-0000-0000-0000-0000000000e3', array['00000000-0000-0000-0000-0000000000b3'::uuid]), 1, 'organizer invites kavya');
 
 reset role;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b3","role":"authenticated"}', true);

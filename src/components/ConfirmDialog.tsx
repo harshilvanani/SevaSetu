@@ -17,6 +17,11 @@ export type ConfirmRequest = {
   hideCancel?: boolean;
   /** 'required' asks for a reason before confirming, 'optional' offers a note, undefined shows no field. */
   reason?: 'required' | 'optional';
+  /** Label for the text field when it is used for something other than a reason (e.g. a name). */
+  fieldLabel?: string;
+  initialValue?: string;
+  /** Single-line field instead of a multi-line note. */
+  singleLine?: boolean;
   onConfirm: (reason: string) => Promise<void> | void;
 };
 
@@ -37,12 +42,12 @@ export function useConfirm() {
 
 function DialogBody({ request, onClose }: { request: ConfirmRequest; onClose: () => void }) {
   const { t } = useTranslation();
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState(request.initialValue ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const confirm = async () => {
-    if (request.reason === 'required' && !reason.trim()) return setError(t('admin.reasonRequired'));
+    if (request.reason === 'required' && !reason.trim()) return setError(request.fieldLabel ? t('taskForm.required') : t('admin.reasonRequired'));
     setError(null);
     setBusy(true);
     try {
@@ -63,11 +68,11 @@ function DialogBody({ request, onClose }: { request: ConfirmRequest; onClose: ()
         {request.body ? <Text variant="bodySm" color={colors.body}>{request.body}</Text> : null}
         {request.reason ? (
           <TextField
-            label={request.reason === 'required' ? t('admin.reason') : t('admin.reasonOptional')}
+            label={request.fieldLabel ?? (request.reason === 'required' ? t('admin.reason') : t('admin.reasonOptional'))}
             value={reason}
             onChangeText={setReason}
-            multiline
-            maxLength={500}
+            multiline={!request.singleLine}
+            maxLength={request.singleLine ? 140 : 500}
             error={error ?? undefined}
             autoFocus
           />

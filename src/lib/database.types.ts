@@ -174,6 +174,118 @@ export type Database = {
         }
         Relationships: []
       }
+      event_access: {
+        Row: {
+          created_at: string
+          event_id: string
+          expires_at: string | null
+          invited_by: string | null
+          note: string | null
+          responded_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          expires_at?: string | null
+          invited_by?: string | null
+          note?: string | null
+          responded_at?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          expires_at?: string | null
+          invited_by?: string | null
+          note?: string | null
+          responded_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_access_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_access_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_access_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_hours: {
+        Row: {
+          assignment_id: string
+          hours: number
+          logged_at: string
+          logged_by: string | null
+        }
+        Insert: {
+          assignment_id: string
+          hours: number
+          logged_at?: string
+          logged_by?: string | null
+        }
+        Update: {
+          assignment_id?: string
+          hours?: number
+          logged_at?: string
+          logged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_hours_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: true
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_hours_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_hours_logged_by_fkey"
+            columns: ["logged_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_private_details: {
         Row: {
           contact_info: string | null
@@ -200,10 +312,98 @@ export type Database = {
           },
         ]
       }
+      event_template_tasks: {
+        Row: {
+          id: string
+          name: string
+          name_i18n: Json
+          sort: number
+          template_id: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          name_i18n?: Json
+          sort?: number
+          template_id: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          name_i18n?: Json
+          sort?: number
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_template_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "event_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          name_i18n: Json
+          org_id: string | null
+          sort: number
+          visibility: Database["public"]["Enums"]["visibility"]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          name_i18n?: Json
+          org_id?: string | null
+          sort?: number
+          visibility?: Database["public"]["Enums"]["visibility"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          name_i18n?: Json
+          org_id?: string | null
+          sort?: number
+          visibility?: Database["public"]["Enums"]["visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           address: string | null
           city: string | null
+          completed_at: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -216,6 +416,7 @@ export type Database = {
           published_at: string | null
           starts_at: string
           status: Database["public"]["Enums"]["event_status"]
+          template_id: string | null
           title: string
           updated_at: string
           venue_name: string | null
@@ -224,6 +425,7 @@ export type Database = {
         Insert: {
           address?: string | null
           city?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -236,6 +438,7 @@ export type Database = {
           published_at?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["event_status"]
+          template_id?: string | null
           title: string
           updated_at?: string
           venue_name?: string | null
@@ -244,6 +447,7 @@ export type Database = {
         Update: {
           address?: string | null
           city?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -256,6 +460,7 @@ export type Database = {
           published_at?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["event_status"]
+          template_id?: string | null
           title?: string
           updated_at?: string
           venue_name?: string | null
@@ -281,6 +486,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "event_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -872,6 +1084,7 @@ export type Database = {
       }
       assert_not_blocked: { Args: never; Returns: undefined }
       assert_platform_admin: { Args: never; Returns: undefined }
+      can_edit_template: { Args: { p_template: string }; Returns: boolean }
       can_manage_org: { Args: { p_org: string }; Returns: boolean }
       can_see_profile: { Args: { p_user: string }; Returns: boolean }
       can_view_event: { Args: { p_event: string }; Returns: boolean }
@@ -880,15 +1093,64 @@ export type Database = {
         Args: { p_assignment: string }
         Returns: undefined
       }
+      complete_event: {
+        Args: { p_event: string; p_hours: Json }
+        Returns: undefined
+      }
       create_organization: {
         Args: { p_city?: string; p_description?: string; p_name: string }
         Returns: string
       }
+      decline_event_invitation: {
+        Args: { p_event: string }
+        Returns: undefined
+      }
       decline_invitation: { Args: { p_invitation: string }; Returns: undefined }
       delete_my_account: { Args: never; Returns: undefined }
+      effective_hours: { Args: { p_assignment: string }; Returns: number }
+      estimate_hours: { Args: { p_assignment: string }; Returns: number }
+      event_hours_candidates: {
+        Args: { p_event: string }
+        Returns: {
+          assignment_id: string
+          estimate: number
+          logged: number
+          task_id: string
+          task_title: string
+          volunteer_id: string
+          volunteer_name: string
+        }[]
+      }
       event_org: { Args: { p_event: string }; Returns: string }
       expire_invitations: { Args: never; Returns: number }
+      find_volunteers: {
+        Args: {
+          p_event: string
+          p_only_available?: boolean
+          p_only_near?: boolean
+          p_skills?: string[]
+          p_task?: string
+          p_tz?: string
+        }
+        Returns: {
+          availability: Json
+          city: string
+          distance_km: number
+          full_name: string
+          id: string
+          interests: string[]
+          reasons: string[]
+          score: number
+          serve_mode: Database["public"]["Enums"]["serve_mode"]
+          skills: string[]
+        }[]
+      }
+      has_event_access: { Args: { p_event: string }; Returns: boolean }
       has_task_access: { Args: { p_task: string }; Returns: boolean }
+      invite_to_event: {
+        Args: { p_days?: number; p_event: string; p_users: string[] }
+        Returns: number
+      }
       invite_to_task: {
         Args: { p_days?: number; p_task: string; p_users: string[] }
         Returns: number
@@ -900,6 +1162,17 @@ export type Database = {
       is_platform_admin: { Args: never; Returns: boolean }
       join_task: { Args: { p_qty?: number; p_task: string }; Returns: Json }
       leave_task: { Args: { p_assignment: string }; Returns: Json }
+      list_private_events: {
+        Args: never
+        Returns: {
+          access: string
+          id: string
+          org_id: string
+          org_name: string
+          starts_at: string
+          title: string
+        }[]
+      }
       log_admin_action: {
         Args: {
           p_action: string
@@ -922,7 +1195,16 @@ export type Database = {
       }
       publish_event: { Args: { p_event: string }; Returns: undefined }
       refresh_task_counters: { Args: { p_task: string }; Returns: undefined }
+      reopen_event: { Args: { p_event: string }; Returns: undefined }
+      request_event_access: {
+        Args: { p_event: string; p_note?: string }
+        Returns: string
+      }
       reset_demo_data: { Args: never; Returns: undefined }
+      respond_event_request: {
+        Args: { p_approve: boolean; p_event: string; p_user: string }
+        Returns: undefined
+      }
       resubmit_organization: {
         Args: {
           p_city?: string
@@ -939,6 +1221,10 @@ export type Database = {
           p_report: string
           p_verified_qty?: number
         }
+        Returns: undefined
+      }
+      revoke_event_access: {
+        Args: { p_event: string; p_user: string }
         Returns: undefined
       }
       search_volunteers: {
