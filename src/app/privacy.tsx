@@ -16,10 +16,11 @@ export default function PrivacyPolicy() {
           heading: 'What we collect',
           bullets: [
             'Account: your name, email address and how you sign in (email and password, or Google). If you use Google, Google shares your name, email and profile photo with us. Passwords are stored only in encrypted form by our authentication provider.',
-            'Profile details you choose to add: city or area, your approximate location if you allow it (to show distances), how far you will travel, interests, skills, weekly availability, how you like to serve, hours per week and language.',
+            'Profile details you choose to add: city or area, your approximate location if you allow it (to show distances), how far you will travel, interests, skills, Art of Living courses you have completed, weekly availability, how you like to serve, hours per week and language.',
             'Your seva activity: the seva you join, the quantity you take on, the progress you report and notes you write, organizers’ reviews of your reports (including any adjustment and its reason), invitations, and in-app notifications.',
             'If you organize: your organization’s name, city and description, and the events and tasks you publish.',
             'If you allow notifications on a phone: a push notification token for that device.',
+            'If you donate: your name, email address, the amount, whether it is monthly, and the date. Card details are entered on Stripe’s page and never reach SevaSetu.',
           ],
         },
         {
@@ -43,6 +44,7 @@ export default function PrivacyPolicy() {
             'After an event, the organizer records the hours you served. Those hours appear on your profile and count toward your totals.',
             'SevaSetu administrators can see account information, organizations and activity to review organizations and keep the platform safe. Their actions are recorded in an audit log.',
             'Anyone, even without an account, can see public seva listings and the name of the organization running them.',
+            'The organization you donate to sees your name, email address, the amount and the date, so it can thank you and issue any tax receipt.',
           ],
         },
         {
@@ -52,6 +54,7 @@ export default function PrivacyPolicy() {
             'Hostinger hosts the SevaSetu website.',
             'Google provides “Continue with Google” sign-in, if you choose it.',
             'Expo delivers push notifications to phones that allow them.',
+            'Stripe processes donations. Each donation is paid into the receiving organization’s own Stripe account, and Stripe emails the donor a receipt.',
           ],
           paragraphs: ['These providers process information only to run their part of the service.'],
         },

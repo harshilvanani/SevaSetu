@@ -22,13 +22,17 @@ export const INTERESTS = [
 ] as const;
 export type Interest = (typeof INTERESTS)[number];
 
+/** Art of Living courses a volunteer can say they have completed (self-declared). */
+export const COURSES = ['part1', 'part2', 'vtp', 'teachers', 'sri_sri_yoga', 'sky_teens', 'sanyam'] as const;
+export type Course = (typeof COURSES)[number];
+
 export const PERIODS: Period[] = ['morning', 'afternoon', 'evening'];
 export const RADII = [5, 10, 25, 50] as const;
 
 export type ProfileUpdate = Partial<
   Pick<
     Tables<'profiles'>,
-    'full_name' | 'city' | 'latitude' | 'longitude' | 'radius_km' | 'interests' | 'skills' | 'serve_mode' | 'hours_per_week' | 'onboarded_at' | 'locale'
+    'full_name' | 'city' | 'latitude' | 'longitude' | 'radius_km' | 'interests' | 'skills' | 'serve_mode' | 'hours_per_week' | 'onboarded_at' | 'locale' | 'courses'
   >
 >;
 

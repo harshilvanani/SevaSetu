@@ -41,6 +41,15 @@ export default function Terms() {
           ],
         },
         {
+          heading: 'Donations',
+          bullets: [
+            'Donations go directly to the organization running the campaign, through its own Stripe account. SevaSetu does not hold or keep any part of your donation.',
+            'Stripe emails you a payment receipt. Official tax receipts, refunds and questions about how funds are used are handled by the organization.',
+            'Monthly donations continue until you cancel them using the link in Stripe’s emails, or by contacting the organization.',
+            'Organizers must describe campaigns honestly and use funds for the stated purpose.',
+          ],
+        },
+        {
           heading: 'What’s not allowed',
           bullets: [
             'Misleading or fake events, organizations or reports.',

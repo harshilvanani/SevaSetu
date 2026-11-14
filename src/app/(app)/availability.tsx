@@ -8,7 +8,7 @@ import { Card, Row, Screen, useLayout } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import type { Slot } from '@/domain/seva';
 import { type Profile, useAuth } from '@/features/auth/AuthProvider';
-import { AvailabilityGrid, InterestsEditor, LocationEditor, type LocationValue, ServePrefsEditor } from '@/features/profile/editors';
+import { AvailabilityGrid, CoursesPicker, InterestsEditor, LocationEditor, type LocationValue, ServePrefsEditor } from '@/features/profile/editors';
 import { geocodeCity, useAvailability, useSaveAvailability, useSaveProfile } from '@/features/profile/prefs';
 import { colors } from '@/theme/tokens';
 
@@ -46,6 +46,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
     radius_km: profile.radius_km,
   });
   const [interests, setInterests] = useState({ interests: profile.interests, skills: profile.skills });
+  const [courses, setCourses] = useState<string[]>(profile.courses ?? []);
   const [prefs, setPrefs] = useState({
     serve_mode: profile.serve_mode,
     hours_per_week: (profile.hours_per_week as '1-2' | '3-5' | '6+' | null) ?? null,
@@ -59,7 +60,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
     }
     await Promise.all([
       saveSlots.mutateAsync(slots),
-      saveProfile.mutateAsync({ city: loc.city.trim() || null, latitude, longitude, radius_km: loc.radius_km, ...interests, ...prefs }),
+      saveProfile.mutateAsync({ city: loc.city.trim() || null, latitude, longitude, radius_km: loc.radius_km, ...interests, ...prefs, courses }),
     ]);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -89,6 +90,10 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
           <InterestsEditor interests={interests.interests} skills={interests.skills} onChange={setInterests} />
         </Card>
       </Row>
+      <Card style={{ gap: 14, padding: 20 }}>
+        <Text variant="h3">{t('courses.title')}</Text>
+        <CoursesPicker value={courses} onChange={setCourses} hint={t('courses.hint')} />
+      </Card>
     </Screen>
   );
 }

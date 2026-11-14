@@ -17,7 +17,30 @@ export type TaskWithEvent = Tables<'seva_tasks'> & { events: EventLite };
 export type AssignmentWithTask = Tables<'assignments'> & {
   seva_tasks: TaskWithEvent;
   progress_reports: Tables<'progress_reports'>[];
+  /** Hours the organizer logged when completing the event (counts once the event is completed). */
+  event_hours: { hours: number } | null;
 };
+
+/** Hours shown on a completed seva: what the organizer logged, if the event is completed. */
+export function loggedHours(a: AssignmentWithTask): number | null {
+  return a.seva_tasks.events.status === 'completed' && a.event_hours ? Number(a.event_hours.hours) : null;
+}
+
+/** The volunteer's totals. Always refetched when shown, so hours logged by an organizer appear straight away. */
+export function useVolunteerStats() {
+  const { session } = useAuth();
+  return useQuery({
+    queryKey: ['volunteer-stats', session?.user.id],
+    enabled: !!session,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('volunteer_stats');
+      if (error) throw error;
+      return data?.[0] ?? { verified_hours: 0, completed_count: 0, active_count: 0 };
+    },
+  });
+}
 
 /** When the seva happens. Virtual quantity tasks without a fixed time return null ("any time before deadline"). */
 export function taskStart(t: TaskWithEvent): string | null {
@@ -87,7 +110,7 @@ export function useMyAssignments() {
     queryFn: async (): Promise<AssignmentWithTask[]> => {
       const { data, error } = await supabase
         .from('assignments')
-        .select(`*, seva_tasks!inner(*, events!inner(${EVENT_FIELDS})), progress_reports(*)`)
+        .select(`*, seva_tasks!inner(*, events!inner(${EVENT_FIELDS})), progress_reports(*), event_hours(hours)`)
         .eq('volunteer_id', session!.user.id)
         .order('joined_at', { ascending: false });
       if (error) throw error;

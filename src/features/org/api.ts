@@ -114,7 +114,7 @@ export function useProfileNames(ids: string[]) {
 function useInvalidateOrg() {
   const qc = useQueryClient();
   return () => {
-    for (const k of ['org-events', 'org-event', 'review-queue', 'task-assignments', 'task-invitations', 'discover', 'nav-badges', 'my-assignments', 'event-access', 'hours-candidates', 'private-events', 'templates', 'find-volunteers']) {
+    for (const k of ['org-events', 'org-event', 'review-queue', 'task-assignments', 'task-invitations', 'discover', 'nav-badges', 'my-assignments', 'event-access', 'hours-candidates', 'private-events', 'templates', 'find-volunteers', 'volunteer-stats', 'notifications']) {
       qc.invalidateQueries({ queryKey: [k] });
     }
   };
@@ -249,6 +249,7 @@ export type TaskInput = {
   ends_at: string | null;
   signup_deadline: string | null;
   mode: Enums<'participation_mode'>;
+  required_courses: string[];
 };
 
 export function useSaveTask() {
@@ -465,12 +466,14 @@ export type FoundVolunteer = {
   availability: { weekday: number; period: string }[];
   distance_km: number | null;
   score: number;
-  reasons: ('interest' | 'skills' | 'available' | 'near' | 'online')[];
+  reasons: ('interest' | 'skills' | 'course' | 'available' | 'near' | 'online')[];
+  courses: string[];
+  onboarded: boolean;
 };
 
-export function useFindVolunteers(v: { eventId: string; taskId: string | null; skills: string[]; onlyAvailable: boolean; onlyNear: boolean }) {
+export function useFindVolunteers(v: { eventId: string; taskId: string | null; skills: string[]; courses: string[]; onlyAvailable: boolean; onlyNear: boolean }) {
   return useQuery({
-    queryKey: ['find-volunteers', v.eventId, v.taskId, v.skills.join(','), v.onlyAvailable, v.onlyNear],
+    queryKey: ['find-volunteers', v.eventId, v.taskId, v.skills.join(','), v.courses.join(','), v.onlyAvailable, v.onlyNear],
     queryFn: async (): Promise<FoundVolunteer[]> => {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
       const { data, error } = await supabase.rpc('find_volunteers', {
@@ -480,6 +483,7 @@ export function useFindVolunteers(v: { eventId: string; taskId: string | null; s
         p_only_available: v.onlyAvailable,
         p_only_near: v.onlyNear,
         p_tz: tz,
+        p_courses: v.courses,
       });
       if (error) throw error;
       return (data ?? []) as unknown as FoundVolunteer[];

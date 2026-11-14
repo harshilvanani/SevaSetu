@@ -60,6 +60,9 @@ export default function DiscoverScreen() {
   const badges = useNavBadges();
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [sheet, setSheet] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  // Two rows of public seva, then private events, then the rest on request.
+  const firstCount = (isPhone ? 1 : isDesktop ? 3 : 2) * 2;
 
   const nearKm = profile?.radius_km && profile.radius_km <= 10 ? profile.radius_km : 5;
   const origin = profile ? { latitude: profile.latitude, longitude: profile.longitude } : null;
@@ -214,8 +217,6 @@ export default function DiscoverScreen() {
         </View>
       ) : null}
 
-      {session && !filtering ? <PrivateEventsSection /> : null}
-
       {session && !hasHistory && !filtering && goodFirst.length ? (
         <View style={{ gap: 12 }}>
           <View style={{ gap: 2 }}>
@@ -263,16 +264,22 @@ export default function DiscoverScreen() {
           ) : (
             <EmptyState title={t('discover.emptyTitle')} body={t('discover.emptyBody')} />
           )
-        ) : isPhone ? (
-          publicList.map((task) => <SevaRow key={task.id} task={task} km={dist(task)} />)
         ) : (
-          <Grid>
-            {publicList.map((task) => (
-              <SevaCard key={task.id} task={task} km={dist(task)} />
-            ))}
-          </Grid>
+          <PublicList list={filtering ? publicList : publicList.slice(0, firstCount)} dist={dist} />
         )}
       </View>
+
+      {session && !filtering ? <PrivateEventsSection /> : null}
+
+      {!filtering && publicList.length > firstCount ? (
+        showAll ? (
+          <View style={{ gap: 12 }}>
+            <PublicList list={publicList.slice(firstCount)} dist={dist} />
+          </View>
+        ) : (
+          <Button title={t('discover.showAll', { count: publicList.length })} variant="outline" onPress={() => setShowAll(true)} />
+        )
+      ) : null}
 
       <FilterSheet
         visible={sheet}
@@ -283,6 +290,18 @@ export default function DiscoverScreen() {
         count={(f) => all.filter((task) => task.visibility === 'public' && matches(task, f)).length}
       />
     </Screen>
+  );
+}
+
+function PublicList({ list, dist }: { list: TaskWithEvent[]; dist: (t: TaskWithEvent) => number | null }) {
+  const { isPhone } = useLayout();
+  if (isPhone) return <>{list.map((task) => <SevaRow key={task.id} task={task} km={dist(task)} />)}</>;
+  return (
+    <Grid>
+      {list.map((task) => (
+        <SevaCard key={task.id} task={task} km={dist(task)} />
+      ))}
+    </Grid>
   );
 }
 

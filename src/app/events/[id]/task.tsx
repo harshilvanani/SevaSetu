@@ -13,7 +13,7 @@ import { Text } from '@/components/Text';
 import { useDeleteTask, useOrgEvent, useSaveTask, useSetTaskStatus, type OrgEvent } from '@/features/org/api';
 import { OrganizerGate } from '@/features/org/components';
 import { StepHeader } from '@/features/org/EventForm';
-import { INTERESTS } from '@/features/profile/prefs';
+import { COURSES, INTERESTS } from '@/features/profile/prefs';
 import type { Enums, Tables } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
 
@@ -59,6 +59,7 @@ function TaskForm({ event, task, suggestedName, onDone }: { event: OrgEvent; tas
   const [steps, setSteps] = useState((task?.steps ?? []).join('\n'));
   const [instructions, setInstructions] = useState(task?.instructions ?? '');
   const [category, setCategory] = useState<string | null>(task?.category ?? null);
+  const [requiredCourses, setRequiredCourses] = useState<string[]>(task?.required_courses ?? []);
   const [type, setType] = useState<Enums<'task_type'> | null>(task?.type ?? (fromSuggestion ? null : 'quantity'));
   const [target, setTarget] = useState(String(task?.target_qty ?? (fromSuggestion ? '' : 10)));
   const [unit, setUnit] = useState(task?.unit ?? '');
@@ -107,6 +108,7 @@ function TaskForm({ event, task, suggestedName, onDone }: { event: OrgEvent; tas
         ends_at: ends?.toISOString() ?? null,
         signup_deadline: deadline?.toISOString() ?? null,
         mode,
+        required_courses: requiredCourses,
       },
     });
     if (addAnother) router.replace({ pathname: '/events/[id]/task', params: { id: event.id } });
@@ -212,6 +214,22 @@ function TaskForm({ event, task, suggestedName, onDone }: { event: OrgEvent; tas
             ))}
           </Row>
         </View>
+      </Card>
+
+      <Card style={{ gap: 10, padding: 20 }}>
+        <Text variant="h3">{t('courses.requireTitle')}</Text>
+        <Text variant="caption">{t('courses.requireHint')}</Text>
+        <Row gap={8} wrap>
+          {COURSES.map((k) => (
+            <Chip
+              key={k}
+              size="sm"
+              label={t(`courses.${k}`)}
+              selected={requiredCourses.includes(k)}
+              onPress={() => setRequiredCourses(requiredCourses.includes(k) ? requiredCourses.filter((x) => x !== k) : [...requiredCourses, k])}
+            />
+          ))}
+        </Row>
       </Card>
 
       <Card style={{ gap: 4, padding: 20 }}>

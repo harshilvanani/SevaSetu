@@ -1,6 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,13 +16,13 @@ import { Stepper } from '@/components/Stepper';
 import { Text } from '@/components/Text';
 import { progressBreakdown, remaining, reportable } from '@/domain/seva';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { type AssignmentWithTask, assignmentProgress, taskEnd, taskStart, useMyAssignments } from '@/features/seva/api';
+import { type AssignmentWithTask, assignmentProgress, loggedHours, taskEnd, taskStart, useMyAssignments, useVolunteerStats } from '@/features/seva/api';
 import { useTaskText } from '@/features/seva/components';
 import { useLeaveTask, useUpdateClaim } from '@/features/seva/join';
 import { type Bucket, bucketOf, progressErrorKey, usePublicNames, useSubmitProgress } from '@/features/seva/progress';
 import { addToCalendar } from '@/lib/calendar';
 import { formatDateTime, formatDay, formatTime, formatWhen } from '@/lib/format';
-import { errorCode, supabase } from '@/lib/supabase';
+import { errorCode } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 export default function MySevaScreen() {
@@ -36,15 +35,14 @@ export default function MySevaScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(params.assignment ?? null);
   const [reportOpen, setReportOpen] = useState(params.report === '1');
 
-  const stats = useQuery({
-    queryKey: ['volunteer-stats', session?.user.id],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('volunteer_stats');
-      if (error) throw error;
-      return data?.[0] ?? { verified_hours: 0, completed_count: 0, active_count: 0 };
-    },
-  });
+  const stats = useVolunteerStats();
+  const refetchStats = stats.refetch;
+  // Tabs stay mounted: refresh totals whenever this screen comes back into view.
+  useFocusEffect(
+    useCallback(() => {
+      refetchStats();
+    }, [refetchStats]),
+  );
 
   if (!session) {
     return (
@@ -185,6 +183,7 @@ function AssignmentCard({ a, selected, onPress }: { a: AssignmentWithTask; selec
           <Badge label={formatDay(start)} tone="amber" />
         ) : null}
         {a.status === 'completed' ? <Badge label={t('mySeva.approved')} tone="success" icon="check" /> : null}
+        {loggedHours(a) !== null ? <Badge label={t('mySeva.hoursLogged', { hours: loggedHours(a) })} tone="purple" icon="clock" /> : null}
       </Row>
       <View style={{ gap: 2 }}>
         <Text variant="title">{task.title}</Text>

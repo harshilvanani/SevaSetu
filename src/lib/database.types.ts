@@ -174,6 +174,181 @@ export type Database = {
         }
         Relationships: []
       }
+      donation_campaigns: {
+        Row: {
+          allow_cover_fees: boolean
+          allow_monthly: boolean
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          donors_count: number
+          event_id: string | null
+          goal_cents: number | null
+          id: string
+          image_url: string | null
+          org_id: string
+          presets: number[]
+          raised_cents: number
+          status: string
+          title: string
+        }
+        Insert: {
+          allow_cover_fees?: boolean
+          allow_monthly?: boolean
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          donors_count?: number
+          event_id?: string | null
+          goal_cents?: number | null
+          id?: string
+          image_url?: string | null
+          org_id: string
+          presets?: number[]
+          raised_cents?: number
+          status?: string
+          title: string
+        }
+        Update: {
+          allow_cover_fees?: boolean
+          allow_monthly?: boolean
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          donors_count?: number
+          event_id?: string | null
+          goal_cents?: number | null
+          id?: string
+          image_url?: string | null
+          org_id?: string
+          presets?: number[]
+          raised_cents?: number
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donation_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_campaigns_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donation_campaigns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donations: {
+        Row: {
+          amount_cents: number
+          campaign_id: string
+          created_at: string
+          currency: string
+          donor_email: string | null
+          donor_id: string | null
+          donor_name: string | null
+          fee_cents: number
+          id: string
+          interval: string
+          org_id: string
+          paid_at: string | null
+          status: string
+          stripe_invoice_id: string | null
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          campaign_id: string
+          created_at?: string
+          currency?: string
+          donor_email?: string | null
+          donor_id?: string | null
+          donor_name?: string | null
+          fee_cents?: number
+          id?: string
+          interval?: string
+          org_id: string
+          paid_at?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          campaign_id?: string
+          created_at?: string
+          currency?: string
+          donor_email?: string | null
+          donor_id?: string | null
+          donor_name?: string | null
+          fee_cents?: number
+          id?: string
+          interval?: string
+          org_id?: string
+          paid_at?: string | null
+          status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "donation_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "donations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_access: {
         Row: {
           created_at: string
@@ -588,6 +763,38 @@ export type Database = {
           },
         ]
       }
+      org_payments: {
+        Row: {
+          charges_enabled: boolean
+          details_submitted: boolean
+          org_id: string
+          stripe_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          charges_enabled?: boolean
+          details_submitted?: boolean
+          org_id: string
+          stripe_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          charges_enabled?: boolean
+          details_submitted?: boolean
+          org_id?: string
+          stripe_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           city: string | null
@@ -668,6 +875,7 @@ export type Database = {
           blocked_at: string | null
           blocked_reason: string | null
           city: string | null
+          courses: string[]
           created_at: string
           email: string | null
           full_name: string
@@ -690,6 +898,7 @@ export type Database = {
           blocked_at?: string | null
           blocked_reason?: string | null
           city?: string | null
+          courses?: string[]
           created_at?: string
           email?: string | null
           full_name?: string
@@ -712,6 +921,7 @@ export type Database = {
           blocked_at?: string | null
           blocked_reason?: string | null
           city?: string | null
+          courses?: string[]
           created_at?: string
           email?: string | null
           full_name?: string
@@ -845,6 +1055,7 @@ export type Database = {
           mode: Database["public"]["Enums"]["participation_mode"]
           pending_total: number
           positions: number | null
+          required_courses: string[]
           signup_deadline: string | null
           starts_at: string | null
           status: Database["public"]["Enums"]["task_status"]
@@ -874,6 +1085,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["participation_mode"]
           pending_total?: number
           positions?: number | null
+          required_courses?: string[]
           signup_deadline?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
@@ -903,6 +1115,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["participation_mode"]
           pending_total?: number
           positions?: number | null
+          required_courses?: string[]
           signup_deadline?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
@@ -1125,6 +1338,7 @@ export type Database = {
       expire_invitations: { Args: never; Returns: number }
       find_volunteers: {
         Args: {
+          p_courses?: string[]
           p_event: string
           p_only_available?: boolean
           p_only_near?: boolean
@@ -1135,10 +1349,12 @@ export type Database = {
         Returns: {
           availability: Json
           city: string
+          courses: string[]
           distance_km: number
           full_name: string
           id: string
           interests: string[]
+          onboarded: boolean
           reasons: string[]
           score: number
           serve_mode: Database["public"]["Enums"]["serve_mode"]
@@ -1193,6 +1409,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      org_accepts_donations: { Args: { p_org: string }; Returns: boolean }
       publish_event: { Args: { p_event: string }; Returns: undefined }
       refresh_task_counters: { Args: { p_task: string }; Returns: undefined }
       reopen_event: { Args: { p_event: string }; Returns: undefined }

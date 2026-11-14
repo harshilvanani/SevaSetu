@@ -10,6 +10,7 @@ import { EmptyState, Card, Row, Screen, TopBar } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import { type FoundVolunteer, useFindVolunteers, useInviteToEvent, useOrgEvent } from '@/features/org/api';
 import { OrganizerGate } from '@/features/org/components';
+import { COURSES } from '@/features/profile/prefs';
 import { colors } from '@/theme/tokens';
 
 export default function FindVolunteersScreen() {
@@ -33,11 +34,12 @@ function Finder({ eventId, tasks }: { eventId: string; tasks: { id: string; titl
   const { t } = useTranslation();
   const [taskId, setTaskId] = useState<string | null>(null);
   const [skills, setSkills] = useState<string[]>([]);
+  const [courses, setCourses] = useState<string[]>([]);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [onlyNear, setOnlyNear] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
-  const found = useFindVolunteers({ eventId, taskId, skills, onlyAvailable, onlyNear });
+  const found = useFindVolunteers({ eventId, taskId, skills, courses, onlyAvailable, onlyNear });
   const invite = useInviteToEvent();
 
   const toggle = (id: string) => setPicked(picked.includes(id) ? picked.filter((x) => x !== id) : [...picked, id]);
@@ -67,6 +69,14 @@ function Finder({ eventId, tasks }: { eventId: string; tasks: { id: string; titl
           </Row>
         </View>
         <TagInput label={t('find.skills')} hint={t('find.skillsHint')} placeholder={t('onboarding.skillsPlaceholder')} values={skills} onChange={setSkills} />
+        <View style={{ gap: 8 }}>
+          <Text variant="label">{t('find.courses')}</Text>
+          <Row gap={8} wrap>
+            {COURSES.map((k) => (
+              <Chip key={k} size="sm" label={t(`courses.${k}`)} selected={courses.includes(k)} onPress={() => setCourses(courses.includes(k) ? courses.filter((x) => x !== k) : [...courses, k])} />
+            ))}
+          </Row>
+        </View>
         <Row gap={8} wrap>
           <Chip size="sm" label={t('find.onlyAvailable')} selected={onlyAvailable} onPress={() => setOnlyAvailable(!onlyAvailable)} />
           <Chip size="sm" label={t('find.onlyNear')} selected={onlyNear} onPress={() => setOnlyNear(!onlyNear)} />
@@ -75,7 +85,7 @@ function Finder({ eventId, tasks }: { eventId: string; tasks: { id: string; titl
 
       {found.isPending ? <Text variant="caption">{t('common.loading')}</Text> : null}
       {found.error ? <Text variant="caption" color={colors.danger}>{(found.error as Error).message}</Text> : null}
-      {found.data && found.data.length === 0 ? <EmptyState title={t('find.none')} /> : null}
+      {found.data && found.data.length === 0 ? <EmptyState title={t('find.none')} body={t('find.noneBody')} /> : null}
       {(found.data ?? []).map((v) => (
         <VolunteerCard key={v.id} v={v} picked={picked.includes(v.id)} onToggle={() => toggle(v.id)} />
       ))}
@@ -99,7 +109,10 @@ function VolunteerCard({ v, picked, onToggle }: { v: FoundVolunteer; picked: boo
               {[v.city, v.distance_km != null ? t('find.km', { km: v.distance_km }) : null, t(`availability.modes.${v.serve_mode}`)].filter(Boolean).join(' · ')}
             </Text>
           </View>
-          <Badge label={picked ? t('find.selected') : t('find.select')} tone={picked ? 'purple' : 'neutral'} />
+          <Row gap={6}>
+            {!v.onboarded ? <Badge label={t('find.profileIncomplete')} tone="amber" /> : null}
+            <Badge label={picked ? t('find.selected') : t('find.select')} tone={picked ? 'purple' : 'neutral'} />
+          </Row>
         </Row>
         {v.reasons.length ? (
           <Row gap={6} wrap>
@@ -110,6 +123,8 @@ function VolunteerCard({ v, picked, onToggle }: { v: FoundVolunteer; picked: boo
         ) : null}
         {v.interests.length ? <Text variant="caption">{t('find.interests')}: {v.interests.map((k) => t(`interests.${k}`, { defaultValue: k })).join(', ')}</Text> : null}
         {v.skills.length ? <Text variant="caption">{t('find.skills')}: {v.skills.join(', ')}</Text> : null}
+        {v.courses.length ? <Text variant="caption">{t('find.courses')}: {v.courses.map((k) => t(`courses.${k}`)).join(', ')}</Text> : null}
+        {!v.onboarded ? <Text variant="caption" color={colors.muted}>{t('find.unfinished')}</Text> : null}
       </Card>
     </Pressable>
   );

@@ -91,6 +91,8 @@ function RootNavigator() {
         <Stack.Screen name="organizations/new" />
         <Stack.Screen name="admin" />
         <Stack.Screen name="private-event/[id]" />
+        <Stack.Screen name="donations/new" />
+        <Stack.Screen name="donations/[id]" />
         <Stack.Screen name="events/new" />
         <Stack.Screen name="events/[id]/index" />
         <Stack.Screen name="events/[id]/edit" />
@@ -100,6 +102,7 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />
+      <Stack.Screen name="give/[id]" />
       <Stack.Screen name="privacy" />
       <Stack.Screen name="terms" />
     </Stack>

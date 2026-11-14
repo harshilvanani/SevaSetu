@@ -13,9 +13,9 @@ import { useNavBadges } from '@/features/shell/badges';
 import { useAppStore } from '@/lib/store';
 import { colors, fonts, radius } from '@/theme/tokens';
 
-type Tab = { name: string; href: '/discover' | '/my-seva' | '/availability' | '/profile' | '/dashboard' | '/events' | '/reviews'; label: string; icon: IconName; badge?: number };
+type Tab = { name: string; href: '/discover' | '/my-seva' | '/availability' | '/profile' | '/dashboard' | '/events' | '/reviews' | '/give' | '/donations'; label: string; icon: IconName; badge?: number };
 
-const ALL = ['discover', 'my-seva', 'availability', 'profile', 'dashboard', 'events', 'reviews'] as const;
+const ALL = ['discover', 'my-seva', 'availability', 'profile', 'dashboard', 'events', 'reviews', 'give', 'donations'] as const;
 
 export default function AppShell() {
   const { t } = useTranslation();
@@ -38,12 +38,14 @@ export default function AppShell() {
         { name: 'dashboard', href: '/dashboard', label: t('nav.dashboard'), icon: 'grid' },
         { name: 'events', href: '/events', label: t('nav.events'), icon: 'calendar' },
         { name: 'reviews', href: '/reviews', label: t('nav.reviews'), icon: 'clipboard', badge: badges.pendingReviews },
+        { name: 'donations', href: '/donations', label: t('nav.donations'), icon: 'heart' },
         { name: 'profile', href: '/profile', label: t('nav.profile'), icon: 'user' },
       ]
     : [
         { name: 'discover', href: '/discover', label: t('nav.discover'), icon: 'compass' },
         { name: 'my-seva', href: '/my-seva', label: t('nav.mySeva'), icon: 'clipboard', badge: badges.activeSeva },
         { name: 'availability', href: '/availability', label: t('nav.availability'), icon: 'calendar' },
+        { name: 'give', href: '/give', label: t('nav.give'), icon: 'heart' },
         { name: 'profile', href: '/profile', label: t('nav.profile'), icon: 'user' },
       ];
 

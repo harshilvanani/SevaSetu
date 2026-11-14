@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { Avatar, Card, Divider, Row, Screen } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useVolunteerStats } from '@/features/seva/api';
 import i18n, { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from '@/lib/i18n';
 import { useInstallApp } from '@/lib/pwa';
 import { useAppStore } from '@/lib/store';
@@ -25,15 +26,14 @@ export default function ProfileScreen() {
   const { ask, dialog } = useConfirm();
   const install = useInstallApp();
 
-  const stats = useQuery({
-    queryKey: ['volunteer-stats', session?.user.id],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('volunteer_stats');
-      if (error) throw error;
-      return data?.[0] ?? { verified_hours: 0, completed_count: 0, active_count: 0 };
-    },
-  });
+  const stats = useVolunteerStats();
+  const refetchStats = stats.refetch;
+  // Tabs stay mounted: refresh totals whenever this screen comes back into view.
+  useFocusEffect(
+    useCallback(() => {
+      refetchStats();
+    }, [refetchStats]),
+  );
 
   if (!session || !profile) {
     return (

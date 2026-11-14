@@ -32,24 +32,24 @@ insert into seva_tasks (id, event_id, title, type, positions, status) values
 select reset_demo_data();
 select reset_demo_data();  -- idempotent
 
-select is((select count(*)::int from events where org_id = 'd0000000-0000-4000-8000-0000000000a1'), 3, 'reset builds 3 demo events (twice, no duplicates)');
+select is((select count(*)::int from events where org_id = 'd0000000-0000-4000-8000-0000000000a1'), 8, 'reset builds 8 demo events (twice, no duplicates)');
 select is((select count(*)::int from profiles where is_demo), 3, 'three demo profiles');
-select is((select claimed_total from seva_tasks where id = 'd0000000-0000-4000-8000-0000000000f1'), 12, 'demo joins feed the capacity counters');
+select is((select claimed_total from seva_tasks where id = 'd0000000-0000-4000-8000-000000000502'), 12, 'demo joins feed the capacity counters');
 
 -- ------------------------------------------------------------ real user
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000d002","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from events where title = 'Community Food Drive'), 0, 'real user cannot see demo events');
+select is((select count(*)::int from events where title = 'Community Meal Drive'), 0, 'real user cannot see demo events');
 select is((select count(*)::int from organizations where is_demo), 0, 'real user cannot see the demo organization');
-select throws_ok($$ select join_task('d0000000-0000-4000-8000-0000000000f2') $$, 'P0001', 'task_not_found', 'real user cannot join demo seva');
+select throws_ok($$ select join_task('d0000000-0000-4000-8000-000000000503') $$, 'P0001', 'task_not_found', 'real user cannot join demo seva');
 select throws_ok($$ select admin_demo_accounts() $$, 'P0001', 'not_authorized', 'non-admin: demo accounts refused');
 select throws_ok($$ select admin_reset_demo() $$, 'P0001', 'not_authorized', 'non-admin: demo reset refused');
 
 -- ------------------------------------------------------------ demo volunteer
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000d003","role":"authenticated"}', true);
-select is((select count(*)::int from events where title = 'Community Food Drive'), 1, 'demo user sees demo events');
+select is((select count(*)::int from events where title = 'Community Meal Drive'), 1, 'demo user sees demo events');
 select is((select count(*)::int from events where title = 'Real event'), 0, 'demo user does not see real events');
-select is((join_task('d0000000-0000-4000-8000-0000000000f2')) ->> 'status', 'joined', 'demo user joins demo seva');
+select is((join_task('d0000000-0000-4000-8000-000000000503')) ->> 'status', 'joined', 'demo user joins demo seva');
 select throws_ok($$ select join_task('00000000-0000-0000-0000-00000000f0d1') $$, 'P0001', 'task_not_found', 'demo user cannot join real seva');
 
 -- ------------------------------------------------------------ admin

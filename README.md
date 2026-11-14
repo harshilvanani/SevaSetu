@@ -57,6 +57,22 @@ Super admins can try the app as a volunteer or an organizer without touching rea
 - **Reset demo data** (same page) puts the demo events, joins and reports back to the starting point.
 - One-time setup per project, after `npm run db:migrate`: `node scripts/demo-setup.mjs` (needs the same `SUPABASE_PROJECT_REF` / `SUPABASE_ACCESS_TOKEN` as the database workflow). It creates the three demo logins with random passwords that only admins can read.
 
+## Donations (Stripe Connect)
+
+Organizers create donation campaigns (**Donations** tab). Anyone can give from the **Give** page, with no account needed. Each organization connects its own Stripe account, and donations go straight to it. Three Edge Functions handle it: `stripe-connect`, `donate-checkout` and `stripe-webhook`.
+
+```bash
+node scripts/deploy-functions.mjs   # deploys all three (needs SUPABASE_PROJECT_REF / SUPABASE_ACCESS_TOKEN)
+```
+
+One-time setup:
+1. In Stripe (start in test mode), turn on **Connect**.
+2. In Supabase → Edge Functions → Secrets, add `STRIPE_SECRET_KEY` (`sk_test_…`).
+3. In Stripe → Developers → Webhooks, add an endpoint listening to **events on Connected accounts**: `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`. Use the events `checkout.session.completed`, `checkout.session.expired`, `invoice.paid`, `charge.refunded` and `account.updated`. Copy its signing secret into the Supabase secret `STRIPE_WEBHOOK_SECRET`.
+4. Optional: `ALLOWED_ORIGINS` (comma-separated) if the website moves to a new domain.
+
+Until the keys exist, campaign pages show "Donations open soon".
+
 ## Database workflow
 
 ```bash
