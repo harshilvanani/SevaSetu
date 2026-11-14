@@ -27,6 +27,7 @@ export type AdminUser = {
   onboarded: boolean;
   org_count: number;
   assignment_count: number;
+  is_demo: boolean;
 };
 
 export type OrgAction = 'approve' | 'reject' | 'suspend' | 'reinstate';

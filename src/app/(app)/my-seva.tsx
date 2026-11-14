@@ -2,11 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/Button';
 import { Badge } from '@/components/Chip';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { TextField } from '@/components/Field';
 import { Icon } from '@/components/Icon';
 import { Card, Divider, EmptyState, Row, Screen, TopBar, useLayout } from '@/components/Layout';
@@ -473,31 +474,29 @@ function Actions({ a, start }: { a: AssignmentWithTask; start: string | null }) 
   const ceiling = Math.min(task.max_per_volunteer ?? Number.POSITIVE_INFINITY, remaining(task) + a.claimed_qty);
   const [qty, setQty] = useState(a.claimed_qty);
   const [msg, setMsg] = useState<string | null>(null);
+  const { ask, dialog } = useConfirm();
 
   if (a.status !== 'active') {
     return <Button title={t('mySeva.viewSeva')} variant="outline" onPress={() => router.push(`/seva/${task.id}`)} />;
   }
 
-  const alertMsg = (m: string) => (Platform.OS === 'web' ? window.alert(m) : Alert.alert(m));
-
-  const doLeave = async () => {
-    try {
-      await leave.mutateAsync(a.id);
-      alertMsg(t('mySeva.left'));
-    } catch (e) {
-      alertMsg(errorCode(e) === 'reports_pending' ? t('mySeva.leaveBlocked') : t('mySeva.errors.generic'));
-    }
-  };
   const confirmLeave = () => {
-    if (pending > 0) return alertMsg(t('mySeva.leaveBlocked'));
-    if (Platform.OS === 'web') {
-      if (window.confirm(t('mySeva.leaveConfirm'))) doLeave();
-    } else {
-      Alert.alert(t('mySeva.leave'), t('mySeva.leaveConfirm'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('mySeva.leave'), style: 'destructive', onPress: doLeave },
-      ]);
+    if (pending > 0) {
+      return ask({ title: t('mySeva.leave'), body: t('mySeva.leaveBlocked'), confirmLabel: t('common.ok'), hideCancel: true, onConfirm: () => {} });
     }
+    ask({
+      title: t('mySeva.leave'),
+      body: t('mySeva.leaveConfirm'),
+      confirmLabel: t('mySeva.leave'),
+      destructive: true,
+      onConfirm: async () => {
+        try {
+          await leave.mutateAsync(a.id);
+        } catch (e) {
+          throw new Error(errorCode(e) === 'reports_pending' ? t('mySeva.leaveBlocked') : t('mySeva.errors.generic'));
+        }
+      },
+    });
   };
 
   const saveQty = async () => {
@@ -515,6 +514,7 @@ function Actions({ a, start }: { a: AssignmentWithTask; start: string | null }) 
 
   return (
     <View style={{ gap: 10 }}>
+      {dialog}
       <Divider color={colors.cardBorder} />
       {task.type === 'quantity' && editing ? (
         <View style={{ gap: 10 }}>

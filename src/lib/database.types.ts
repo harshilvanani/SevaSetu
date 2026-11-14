@@ -153,6 +153,27 @@ export type Database = {
           },
         ]
       }
+      demo_accounts: {
+        Row: {
+          email: string
+          password: string
+          persona: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          password: string
+          persona: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          password?: string
+          persona?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_private_details: {
         Row: {
           contact_info: string | null
@@ -362,6 +383,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          is_demo: boolean
           logo_url: string | null
           name: string
           review_note: string | null
@@ -375,6 +397,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          is_demo?: boolean
           logo_url?: string | null
           name: string
           review_note?: string | null
@@ -388,6 +411,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          is_demo?: boolean
           logo_url?: string | null
           name?: string
           review_note?: string | null
@@ -438,6 +462,7 @@ export type Database = {
           hours_per_week: string | null
           id: string
           interests: string[]
+          is_demo: boolean
           is_platform_admin: boolean
           latitude: number | null
           locale: string
@@ -459,6 +484,7 @@ export type Database = {
           hours_per_week?: string | null
           id: string
           interests?: string[]
+          is_demo?: boolean
           is_platform_admin?: boolean
           latitude?: number | null
           locale?: string
@@ -480,6 +506,7 @@ export type Database = {
           hours_per_week?: string | null
           id?: string
           interests?: string[]
+          is_demo?: boolean
           is_platform_admin?: boolean
           latitude?: number | null
           locale?: string
@@ -800,6 +827,16 @@ export type Database = {
         Args: { p_event: string; p_reason: string }
         Returns: undefined
       }
+      admin_demo_accounts: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          password: string
+          persona: string
+          user_id: string
+        }[]
+      }
       admin_list_users: {
         Args: { p_query?: string }
         Returns: {
@@ -811,6 +848,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_demo: boolean
           is_platform_admin: boolean
           last_sign_in_at: string
           onboarded: boolean
@@ -819,6 +857,7 @@ export type Database = {
         }[]
       }
       admin_overview: { Args: never; Returns: Json }
+      admin_reset_demo: { Args: never; Returns: undefined }
       admin_review_organization: {
         Args: { p_action: string; p_org: string; p_reason?: string }
         Returns: undefined
@@ -855,6 +894,7 @@ export type Database = {
         Returns: number
       }
       is_blocked: { Args: { p_user?: string }; Returns: boolean }
+      is_demo_user: { Args: { p_user?: string }; Returns: boolean }
       is_event_participant: { Args: { p_event: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
@@ -882,6 +922,7 @@ export type Database = {
       }
       publish_event: { Args: { p_event: string }; Returns: undefined }
       refresh_task_counters: { Args: { p_task: string }; Returns: undefined }
+      reset_demo_data: { Args: never; Returns: undefined }
       resubmit_organization: {
         Args: {
           p_city?: string

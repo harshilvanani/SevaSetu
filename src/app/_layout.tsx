@@ -13,11 +13,13 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { AppState, Platform } from 'react-native';
+import { AppState, Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { DemoBar } from '@/features/admin/DemoBar';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { usePushRegistration } from '@/lib/push';
+import { useRegisterServiceWorker } from '@/lib/pwa';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -57,6 +59,7 @@ function RootNavigator() {
   const { session, initializing, profile, profileLoading } = useAuth();
   const ready = !initializing && !profileLoading;
   usePushRegistration(session?.user.id);
+  useRegisterServiceWorker();
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
@@ -68,6 +71,8 @@ function RootNavigator() {
   const onboarded = !!profile?.onboarded_at;
 
   return (
+    <View style={{ flex: 1 }}>
+    <DemoBar />
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.cream } }}>
       <Stack.Screen name="index" />
       <Stack.Protected guard={!signedIn}>
@@ -95,5 +100,6 @@ function RootNavigator() {
       <Stack.Screen name="privacy" />
       <Stack.Screen name="terms" />
     </Stack>
+    </View>
   );
 }

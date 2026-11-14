@@ -56,7 +56,7 @@ export default function AdminUsers() {
             { label: t('admin.users.joined'), flex: 1, render: (u) => <Text variant="bodySm">{formatDay(u.created_at)}</Text> },
             { label: t('admin.users.lastSignIn'), flex: 1, render: (u) => <Text variant="bodySm">{u.last_sign_in_at ? formatDay(u.last_sign_in_at) : t('admin.users.never')}</Text> },
             { label: t('admin.users.seva'), flex: 0.8, render: (u) => <Text variant="bodySm">{u.assignment_count}</Text> },
-            { label: t('admin.users.status'), flex: 1.4, render: (u) => <UserBadges admin={u.is_platform_admin} blocked={!!u.blocked_at} /> },
+            { label: t('admin.users.status'), flex: 1.4, render: (u) => <UserBadges admin={u.is_platform_admin} blocked={!!u.blocked_at} demo={u.is_demo} /> },
           ]}
           card={(u) => (
             <>
@@ -66,7 +66,7 @@ export default function AdminUsers() {
                   <Text variant="caption" numberOfLines={1}>{u.email}</Text>
                 </View>
               </Row>
-              <UserBadges admin={u.is_platform_admin} blocked={!!u.blocked_at} />
+              <UserBadges admin={u.is_platform_admin} blocked={!!u.blocked_at} demo={u.is_demo} />
               <Text variant="caption">
                 {providerLabel(u)} · {t('admin.users.joined')} {formatDay(u.created_at)} · {t('admin.users.seva')}: {u.assignment_count}
               </Text>

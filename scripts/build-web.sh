@@ -12,6 +12,8 @@ npx expo export --platform web --output-dir dist
 
 cp assets/images/og-image.png dist/og-image.png
 cp assets/images/apple-touch-icon.png dist/apple-touch-icon.png
+cp assets/images/pwa-192.png assets/images/pwa-512.png assets/images/pwa-maskable-512.png dist/
+# (public/ already supplies sw.js and manifest.webmanifest, which expo export copies into dist/)
 
 SITE_URL="$(grep -E '^EXPO_PUBLIC_SITE_URL=' .env 2>/dev/null | cut -d= -f2- | sed 's:/*$::' || true)"
 SITE_URL="${EXPO_PUBLIC_SITE_URL:-$SITE_URL}"
@@ -32,6 +34,10 @@ const tags = [
   site ? `<meta property="og:url" content="${site}/">` : '',
   `<meta name="twitter:card" content="summary_large_image">`,
   `<link rel="apple-touch-icon" href="/apple-touch-icon.png">`,
+  `<link rel="manifest" href="/manifest.webmanifest">`,
+  `<meta name="mobile-web-app-capable" content="yes">`,
+  `<meta name="apple-mobile-web-app-capable" content="yes">`,
+  `<meta name="apple-mobile-web-app-title" content="SevaSetu">`,
 ].filter(Boolean).join('\n    ');
 let html = fs.readFileSync(file, 'utf8');
 html = html.replace('</head>', `    ${tags}\n  </head>`);
@@ -43,6 +49,8 @@ cat > dist/.htaccess <<'HTACCESS'
 # SevaSetu website (single-page app)
 Options -Indexes
 RewriteEngine On
+
+AddType application/manifest+json .webmanifest
 
 # Always use HTTPS
 RewriteCond %{HTTPS} !=on
@@ -56,8 +64,8 @@ RewriteRule ^ - [L]
 RewriteRule ^ index.html [L]
 
 <IfModule mod_headers.c>
-  # index.html must never be cached, so new versions show up immediately
-  <FilesMatch "^index\.html$">
+  # index.html, the service worker and the manifest must never be cached, so new versions show up immediately
+  <FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
   </FilesMatch>
   # Built JS/CSS/fonts have content hashes in their names: cache for a year

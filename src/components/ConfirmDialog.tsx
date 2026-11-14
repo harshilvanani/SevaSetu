@@ -13,6 +13,8 @@ export type ConfirmRequest = {
   body?: string;
   confirmLabel: string;
   destructive?: boolean;
+  /** For notices with a single button. */
+  hideCancel?: boolean;
   /** 'required' asks for a reason before confirming, 'optional' offers a note, undefined shows no field. */
   reason?: 'required' | 'optional';
   onConfirm: (reason: string) => Promise<void> | void;
@@ -25,6 +27,12 @@ export function ConfirmDialog({ request, onClose }: { request: ConfirmRequest | 
       {request ? <DialogBody key={request.title} request={request} onClose={onClose} /> : null}
     </Modal>
   );
+}
+
+/** State wiring for a confirmation: call ask({...}) and render {dialog} once in the screen. */
+export function useConfirm() {
+  const [request, setRequest] = useState<ConfirmRequest | null>(null);
+  return { ask: setRequest, dialog: <ConfirmDialog request={request} onClose={() => setRequest(null)} /> };
 }
 
 function DialogBody({ request, onClose }: { request: ConfirmRequest; onClose: () => void }) {
@@ -67,7 +75,7 @@ function DialogBody({ request, onClose }: { request: ConfirmRequest; onClose: ()
           <Text variant="caption" color={colors.danger}>{error}</Text>
         ) : null}
         <View style={styles.actions}>
-          <Button title={t('common.cancel')} variant="outline" onPress={onClose} />
+          {request.hideCancel ? null : <Button title={t('common.cancel')} variant="outline" onPress={onClose} />}
           <Button title={request.confirmLabel} variant={request.destructive ? 'danger' : 'primary'} loading={busy} onPress={confirm} />
         </View>
       </View>

@@ -89,7 +89,7 @@ export default function AdminUser() {
             {isSelf ? <Badge label={t('admin.users.you')} tone="neutral" /> : null}
           </Row>
           <Text variant="caption">{user.email}</Text>
-          <UserBadges admin={user.is_platform_admin} blocked={!!user.blocked_at} />
+          <UserBadges admin={user.is_platform_admin} blocked={!!user.blocked_at} demo={user.is_demo} />
         </View>
       </Row>
 

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Badge } from '@/components/Chip';
 import { Icon, type IconName } from '@/components/Icon';
 import { Avatar, Card, Divider, Row, Screen } from '@/components/Layout';
@@ -11,6 +12,7 @@ import { Text } from '@/components/Text';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
 import i18n, { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from '@/lib/i18n';
+import { useInstallApp } from '@/lib/pwa';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
@@ -20,6 +22,8 @@ export default function ProfileScreen() {
   const { session, profile, memberships, refreshProfile } = useAuth();
   const mode = useAppStore((s) => s.mode);
   const setMode = useAppStore((s) => s.setMode);
+  const { ask, dialog } = useConfirm();
+  const install = useInstallApp();
 
   const stats = useQuery({
     queryKey: ['volunteer-stats', session?.user.id],
@@ -57,30 +61,22 @@ export default function ProfileScreen() {
     router.navigate(next === 'organizer' ? '/dashboard' : '/discover');
   };
 
-  const confirmDelete = () => {
-    const run = async () => {
-      const { error } = await supabase.rpc('delete_my_account');
-      if (error) {
-        const msg = error.message.includes('sole_org_owner')
-          ? 'You are the only owner of an organization. Add another owner or delete the organization first.'
-          : error.message;
-        return Platform.OS === 'web' ? window.alert(msg) : Alert.alert(t('common.somethingWrong'), msg);
-      }
-      await signOut();
-    };
-    const msg = 'This permanently deletes your account, assignments and progress history.';
-    if (Platform.OS === 'web') {
-      if (window.confirm(msg)) run();
-    } else {
-      Alert.alert(t('profile.deleteAccount'), msg, [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.delete'), style: 'destructive', onPress: run },
-      ]);
-    }
-  };
+  const confirmDelete = () =>
+    ask({
+      title: t('profile.deleteAccount'),
+      body: t('profile.deleteConfirm'),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+      onConfirm: async () => {
+        const { error } = await supabase.rpc('delete_my_account');
+        if (error) throw new Error(error.message.includes('sole_org_owner') ? t('profile.soleOwner') : t('common.somethingWrong'));
+        await signOut();
+      },
+    });
 
   return (
     <Screen title={t('profile.title')} maxWidth={720}>
+      {dialog}
       <Row gap={14} style={{ paddingTop: 16 }}>
         <Avatar name={profile.full_name || profile.email || '?'} size={56} />
         <View style={{ flex: 1 }}>
@@ -142,6 +138,21 @@ export default function ProfileScreen() {
           <>
             <Divider color={colors.cardBorder} />
             <MenuItem icon="shield" label={t('profile.adminConsole')} onPress={() => router.push('/admin')} />
+          </>
+        ) : null}
+        {install.status !== 'none' ? (
+          <>
+            <Divider color={colors.cardBorder} />
+            <MenuItem
+              icon="bookmark"
+              label={t('profile.installApp')}
+              hint={t('profile.installHint')}
+              onPress={() =>
+                install.status === 'prompt'
+                  ? install.install()
+                  : ask({ title: t('profile.installApp'), body: t('profile.installIos'), confirmLabel: t('common.ok'), hideCancel: true, onConfirm: () => {} })
+              }
+            />
           </>
         ) : null}
       </Card>

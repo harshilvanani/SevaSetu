@@ -36,6 +36,7 @@ export default function PrivacyPolicy() {
           heading: 'Who can see your information',
           bullets: [
             'Organizers of a seva you join or are invited to can see your name, email address and profile details, and your joins, progress reports and notes for their seva.',
+            'Organizers can download a spreadsheet of the volunteers in their own events (names, email addresses, and the quantities and progress they reported). Please treat it as confidential and use it only to run the seva.',
             'Other volunteers do not see your contact details.',
             'SevaSetu administrators can see account information, organizations and activity to review organizations and keep the platform safe. Their actions are recorded in an audit log.',
             'Anyone, even without an account, can see public seva listings and the name of the organization running them.',

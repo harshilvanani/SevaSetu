@@ -11,12 +11,13 @@ import { Logo } from '@/components/Logo';
 import { Text } from '@/components/Text';
 import { colors, fonts, radius } from '@/theme/tokens';
 
-const NAV: { key: 'overview' | 'organizations' | 'users' | 'events' | 'audit'; href: '/admin' | '/admin/organizations' | '/admin/users' | '/admin/events' | '/admin/audit'; icon: IconName }[] = [
+const NAV: { key: 'overview' | 'organizations' | 'users' | 'events' | 'audit' | 'demo'; href: '/admin' | '/admin/organizations' | '/admin/users' | '/admin/events' | '/admin/audit' | '/admin/demo'; icon: IconName }[] = [
   { key: 'overview', href: '/admin', icon: 'grid' },
   { key: 'organizations', href: '/admin/organizations', icon: 'users' },
   { key: 'users', href: '/admin/users', icon: 'user' },
   { key: 'events', href: '/admin/events', icon: 'calendar' },
   { key: 'audit', href: '/admin/audit', icon: 'clipboard' },
+  { key: 'demo', href: '/admin/demo', icon: 'swap' },
 ];
 
 /** Admin console frame: sidebar on desktop, a scrollable tab strip on phones and tablets. */
@@ -105,12 +106,13 @@ export function OrgStatusBadge({ status }: { status: string }) {
   return <Badge label={t(`admin.status.${status}`)} tone={tone} />;
 }
 
-export function UserBadges({ admin, blocked }: { admin: boolean; blocked: boolean }) {
+export function UserBadges({ admin, blocked, demo }: { admin: boolean; blocked: boolean; demo?: boolean }) {
   const { t } = useTranslation();
   return (
     <Row gap={6} wrap>
       {blocked ? <Badge label={t('admin.users.blocked')} tone="danger" icon="lock" /> : <Badge label={t('admin.users.active')} tone="success" />}
       {admin ? <Badge label={t('admin.users.admin')} tone="purple" icon="shield" /> : null}
+      {demo ? <Badge label={t('admin.users.demo')} tone="amber" /> : null}
     </Row>
   );
 }

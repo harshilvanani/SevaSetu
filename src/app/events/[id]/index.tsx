@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Badge } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Card, Divider, EmptyState, Row, Screen, TopBar, useLayout } from '@/components/Layout';
@@ -21,15 +22,10 @@ import {
 } from '@/features/org/api';
 import { OrganizerGate, StatusBadge, useStaffingText } from '@/features/org/components';
 import { StepHeader } from '@/features/org/EventForm';
+import { exportVolunteers } from '@/features/org/export';
 import { formatDay, formatRange } from '@/lib/format';
 import { errorCode, type Tables } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
-
-const confirm = (msg: string, onYes: () => void) => {
-  if (Platform.OS === 'web') {
-    if (window.confirm(msg)) onYes();
-  } else Alert.alert(msg, undefined, [{ text: 'Cancel', style: 'cancel' }, { text: 'OK', style: 'destructive', onPress: onYes }]);
-};
 
 export default function ManageEventScreen() {
   const { t } = useTranslation();
@@ -56,6 +52,9 @@ function Manage({ event }: { event: OrgEvent }) {
   const assignments = useTaskAssignments(event.seva_tasks.map((x) => x.id));
   const names = useProfileNames((assignments.data ?? []).map((a) => a.volunteer_id));
   const [publishError, setPublishError] = useState<string | null>(null);
+  const { ask, dialog } = useConfirm();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const isDraft = event.status === 'draft';
   const tasks = event.seva_tasks;
 
@@ -74,6 +73,18 @@ function Manage({ event }: { event: OrgEvent }) {
     } catch (e) {
       const code = errorCode(e);
       setPublishError(code === 'venue_required' ? t('eventForm.addressRequired') : code === 'task_required' ? t('eventForm.noTasks') : (e as Error).message);
+    }
+  };
+
+  const doExport = async () => {
+    setExporting(true);
+    setExportError(false);
+    try {
+      await exportVolunteers(event, assignments.data ?? [], t);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -97,7 +108,7 @@ function Manage({ event }: { event: OrgEvent }) {
           ))}
           <Button title={t('eventForm.publish')} size="lg" disabled={!canPublish} loading={publish.isPending} onPress={doPublish} />
           {publishError ? <Text variant="caption" color={colors.danger}>{publishError}</Text> : null}
-          <Pressable accessibilityRole="button" onPress={() => confirm(t('eventForm.deleteDraft'), () => del.mutate(event.id, { onSuccess: () => router.replace('/events') }))} style={{ alignSelf: 'center', padding: 6 }}>
+          <Pressable accessibilityRole="button" onPress={() => ask({ title: t('eventForm.deleteDraft'), body: t('eventForm.deleteDraftConfirm'), confirmLabel: t('common.delete'), destructive: true, onConfirm: async () => { await del.mutateAsync(event.id); router.replace('/events'); } })} style={{ alignSelf: 'center', padding: 6 }}>
             <Text variant="label" color={colors.danger}>{t('eventForm.deleteDraft')}</Text>
           </Pressable>
         </Card>
@@ -109,7 +120,7 @@ function Manage({ event }: { event: OrgEvent }) {
           </Row>
           <Text variant="caption">{t('eventForm.publishedBody')}</Text>
           <Button title={t('eventForm.completeEvent')} variant="outline" onPress={() => setStatus.mutate({ id: event.id, status: 'completed' })} />
-          <Button title={t('eventForm.cancelEvent')} variant="danger" onPress={() => confirm(t('eventForm.cancelConfirm'), () => setStatus.mutate({ id: event.id, status: 'cancelled' }))} />
+          <Button title={t('eventForm.cancelEvent')} variant="danger" onPress={() => ask({ title: t('eventForm.cancelEvent'), body: t('eventForm.cancelConfirm'), confirmLabel: t('eventForm.cancelEvent'), destructive: true, onConfirm: async () => { await setStatus.mutateAsync({ id: event.id, status: 'cancelled' }); } })} />
         </Card>
       ) : null}
     </View>
@@ -117,6 +128,7 @@ function Manage({ event }: { event: OrgEvent }) {
 
   return (
     <View style={{ gap: 20 }}>
+      {dialog}
       <View style={{ gap: 10 }}>
         <Row gap={10} wrap>
           <Text variant="h1" style={{ flexShrink: 1 }}>{event.title}</Text>
@@ -126,9 +138,13 @@ function Manage({ event }: { event: OrgEvent }) {
           {when} · {t(`availability.modes.${event.mode}`)} · {event.visibility === 'public' ? t('seva.public') : t('seva.private')}
           {event.venue_name || event.address ? ` · ${event.venue_name ?? event.address}` : ''}
         </Text>
-        <Row gap={10}>
+        <Row gap={10} wrap>
           <Button title={t('common.edit')} icon="edit" variant="outline" onPress={() => router.push({ pathname: '/events/[id]/edit', params: { id: event.id } })} />
+          {(assignments.data ?? []).length > 0 ? (
+            <Button title={t('export.download')} icon="inbox" variant="outline" loading={exporting} onPress={doExport} />
+          ) : null}
         </Row>
+        {exportError ? <Text variant="caption" color={colors.danger}>{t('common.somethingWrong')}</Text> : null}
         {isDraft ? <StepHeader step={tasks.length ? 3 : 2} /> : null}
       </View>
 

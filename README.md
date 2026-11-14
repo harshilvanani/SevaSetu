@@ -47,7 +47,15 @@ All of these live in the database, so no client can bypass them:
 npm run build:web
 ```
 
-This builds the website into `dist/`: the web app, an `.htaccess` (HTTPS, deep links such as `/seva/<id>`, caching) and link-preview tags. Upload the contents of `dist/` to the site's `public_html`. Set `EXPO_PUBLIC_SITE_URL` in `.env` to the live address first.
+This builds the website into `dist/`: the web app, an `.htaccess` (HTTPS, deep links such as `/seva/<id>`, caching), link-preview tags, and the files that make it installable on a phone or computer (`manifest.webmanifest`, `sw.js`, icons). Upload the contents of `dist/` to the site's `public_html`. Set `EXPO_PUBLIC_SITE_URL` in `.env` to the live address first.
+
+## Demo mode
+
+Super admins can try the app as a volunteer or an organizer without touching real data: **Admin console → Demo mode → View as…**. A banner at the top shows who you are viewing as, with **Switch to…** and **Back to admin**.
+
+- Demo people and the demo organization (“Demo Seva Centre”) are walled off in the database: real users never see demo seva, demo accounts can't join real seva, and demo numbers are left out of the admin overview.
+- **Reset demo data** (same page) puts the demo events, joins and reports back to the starting point.
+- One-time setup per project, after `npm run db:migrate`: `node scripts/demo-setup.mjs` (needs the same `SUPABASE_PROJECT_REF` / `SUPABASE_ACCESS_TOKEN` as the database workflow). It creates the three demo logins with random passwords that only admins can read.
 
 ## Database workflow
 
