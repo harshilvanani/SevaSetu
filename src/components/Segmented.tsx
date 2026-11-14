@@ -47,7 +47,7 @@ export function OptionCards<T extends string>({
   columns = 2,
 }: {
   options: { value: T; title: string; body?: string }[];
-  value: T;
+  value: T | null;
   onChange: (v: T) => void;
   label: string;
   columns?: number;

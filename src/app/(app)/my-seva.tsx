@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, IconButton } from '@/components/Button';
 import { Badge } from '@/components/Chip';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { TextField } from '@/components/Field';
 import { Icon } from '@/components/Icon';
 import { Card, Divider, EmptyState, Row, Screen, TopBar, useLayout } from '@/components/Layout';
@@ -16,13 +16,13 @@ import { Stepper } from '@/components/Stepper';
 import { Text } from '@/components/Text';
 import { progressBreakdown, remaining, reportable } from '@/domain/seva';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { type AssignmentWithTask, assignmentProgress, taskEnd, taskStart, useMyAssignments } from '@/features/seva/api';
+import { type AssignmentWithTask, assignmentProgress, loggedHours, taskEnd, taskStart, useMyAssignments, useVolunteerStats } from '@/features/seva/api';
 import { useTaskText } from '@/features/seva/components';
 import { useLeaveTask, useUpdateClaim } from '@/features/seva/join';
 import { type Bucket, bucketOf, progressErrorKey, usePublicNames, useSubmitProgress } from '@/features/seva/progress';
 import { addToCalendar } from '@/lib/calendar';
 import { formatDateTime, formatDay, formatTime, formatWhen } from '@/lib/format';
-import { errorCode, supabase } from '@/lib/supabase';
+import { errorCode } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 export default function MySevaScreen() {
@@ -35,19 +35,18 @@ export default function MySevaScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(params.assignment ?? null);
   const [reportOpen, setReportOpen] = useState(params.report === '1');
 
-  const stats = useQuery({
-    queryKey: ['volunteer-stats', session?.user.id],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('volunteer_stats');
-      if (error) throw error;
-      return data?.[0] ?? { verified_hours: 0, completed_count: 0, active_count: 0 };
-    },
-  });
+  const stats = useVolunteerStats();
+  const refetchStats = stats.refetch;
+  // Tabs stay mounted: refresh totals whenever this screen comes back into view.
+  useFocusEffect(
+    useCallback(() => {
+      refetchStats();
+    }, [refetchStats]),
+  );
 
   if (!session) {
     return (
-      <Screen maxWidth={560}>
+      <Screen title={t('mySeva.title')} maxWidth={560}>
         <View style={{ paddingTop: 24, gap: 12 }}>
           <Text variant="h1">{t('profile.guestTitle')}</Text>
           <Text variant="body" color={colors.body}>{t('profile.guestBody')}</Text>
@@ -74,7 +73,7 @@ export default function MySevaScreen() {
   if (!isDesktop && selected) {
     return (
       <>
-        <Screen header={<TopBar title={t('mySeva.title')} onBack={() => select(null)} />} maxWidth={720}>
+        <Screen title={t('mySeva.title')} header={<TopBar title={t('mySeva.title')} onBack={() => select(null)} />} maxWidth={720}>
           <AssignmentDetail a={selected} onReport={() => setReportOpen(true)} inlineReport={false} />
         </Screen>
         <ReportSheet a={selected} visible={reportOpen} onClose={() => setReportOpen(false)} />
@@ -127,7 +126,7 @@ export default function MySevaScreen() {
   if (isDesktop) {
     const detail = selected ?? list[0] ?? null;
     return (
-      <Screen maxWidth={1240} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
+      <Screen title={t('mySeva.title')} maxWidth={1240} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
         <Row gap={28} style={{ alignItems: 'flex-start', paddingTop: 8 }}>
           {listView}
           <View style={{ flex: 1.3 }}>
@@ -145,7 +144,7 @@ export default function MySevaScreen() {
   }
 
   return (
-    <Screen refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
+    <Screen title={t('mySeva.title')} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
       {listView}
     </Screen>
   );
@@ -184,6 +183,7 @@ function AssignmentCard({ a, selected, onPress }: { a: AssignmentWithTask; selec
           <Badge label={formatDay(start)} tone="amber" />
         ) : null}
         {a.status === 'completed' ? <Badge label={t('mySeva.approved')} tone="success" icon="check" /> : null}
+        {loggedHours(a) !== null ? <Badge label={t('mySeva.hoursLogged', { hours: loggedHours(a) })} tone="purple" icon="clock" /> : null}
       </Row>
       <View style={{ gap: 2 }}>
         <Text variant="title">{task.title}</Text>
@@ -473,31 +473,29 @@ function Actions({ a, start }: { a: AssignmentWithTask; start: string | null }) 
   const ceiling = Math.min(task.max_per_volunteer ?? Number.POSITIVE_INFINITY, remaining(task) + a.claimed_qty);
   const [qty, setQty] = useState(a.claimed_qty);
   const [msg, setMsg] = useState<string | null>(null);
+  const { ask, dialog } = useConfirm();
 
   if (a.status !== 'active') {
     return <Button title={t('mySeva.viewSeva')} variant="outline" onPress={() => router.push(`/seva/${task.id}`)} />;
   }
 
-  const alertMsg = (m: string) => (Platform.OS === 'web' ? window.alert(m) : Alert.alert(m));
-
-  const doLeave = async () => {
-    try {
-      await leave.mutateAsync(a.id);
-      alertMsg(t('mySeva.left'));
-    } catch (e) {
-      alertMsg(errorCode(e) === 'reports_pending' ? t('mySeva.leaveBlocked') : t('mySeva.errors.generic'));
-    }
-  };
   const confirmLeave = () => {
-    if (pending > 0) return alertMsg(t('mySeva.leaveBlocked'));
-    if (Platform.OS === 'web') {
-      if (window.confirm(t('mySeva.leaveConfirm'))) doLeave();
-    } else {
-      Alert.alert(t('mySeva.leave'), t('mySeva.leaveConfirm'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('mySeva.leave'), style: 'destructive', onPress: doLeave },
-      ]);
+    if (pending > 0) {
+      return ask({ title: t('mySeva.leave'), body: t('mySeva.leaveBlocked'), confirmLabel: t('common.ok'), hideCancel: true, onConfirm: () => {} });
     }
+    ask({
+      title: t('mySeva.leave'),
+      body: t('mySeva.leaveConfirm'),
+      confirmLabel: t('mySeva.leave'),
+      destructive: true,
+      onConfirm: async () => {
+        try {
+          await leave.mutateAsync(a.id);
+        } catch (e) {
+          throw new Error(errorCode(e) === 'reports_pending' ? t('mySeva.leaveBlocked') : t('mySeva.errors.generic'));
+        }
+      },
+    });
   };
 
   const saveQty = async () => {
@@ -515,6 +513,7 @@ function Actions({ a, start }: { a: AssignmentWithTask; start: string | null }) 
 
   return (
     <View style={{ gap: 10 }}>
+      {dialog}
       <Divider color={colors.cardBorder} />
       {task.type === 'quantity' && editing ? (
         <View style={{ gap: 10 }}>

@@ -22,6 +22,13 @@ const ICONS: Record<string, IconName> = {
   reminder: 'calendar',
   org_pending: 'shield',
   org_reviewed: 'users',
+  event_cancelled: 'calendar',
+  account_unblocked: 'check',
+  admin_role: 'shield',
+  event_request: 'users',
+  event_approved: 'check',
+  event_declined: 'x',
+  hours_logged: 'clock',
 };
 
 export default function NotificationsScreen() {
@@ -62,7 +69,7 @@ export default function NotificationsScreen() {
   const back = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
   return (
-    <Screen
+    <Screen title={t('notifications.title')}
       header={<TopBar onBack={back} title={t('notifications.title')} />}
       maxWidth={720}
       refreshing={list.isRefetching}

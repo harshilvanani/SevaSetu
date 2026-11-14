@@ -247,7 +247,7 @@ function Details({ task, header }: { task: TaskWithEvent; header: ReactNode }) {
 
   if (isDesktop) {
     return (
-      <Screen header={header} maxWidth={1180}>
+      <Screen title={task.title} header={header} maxWidth={1180}>
         <Row gap={40} style={{ alignItems: 'flex-start' }}>
           {content}
           <View style={{ width: 380 }}>
@@ -258,7 +258,7 @@ function Details({ task, header }: { task: TaskWithEvent; header: ReactNode }) {
     );
   }
   return (
-    <Screen header={header} footer={<JoinPanel task={task} mine={!!mine} layout="footer" />}>
+    <Screen title={task.title} header={header} footer={<JoinPanel task={task} mine={!!mine} layout="footer" />}>
       {content}
     </Screen>
   );
@@ -280,7 +280,10 @@ function InfoRow({ icon, title, children }: { icon: IconName; title: string; chi
 
 function JoinPanel({ task, mine, layout }: { task: TaskWithEvent; mine: boolean; layout: 'panel' | 'footer' }) {
   const { t } = useTranslation();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
+  const required = task.required_courses ?? [];
+  const meetsCourses = !required.length || required.some((c) => (profile?.courses ?? []).includes(c));
+  const courseNames = required.map((c) => t(`courses.${c}`)).join(t('courses.or'));
   const text = useTaskText();
   const invitations = useMyInvitations();
   const discover = useDiscoverTasks();
@@ -321,6 +324,12 @@ function JoinPanel({ task, mine, layout }: { task: TaskWithEvent; mine: boolean;
       <Text variant="h3">{text.capacityLine(task)}</Text>
       <ProgressBar value={claimedFraction(task)} />
       <Text variant="caption">{t('details.volunteersJoined', { count: task.volunteers_count })}</Text>
+      {required.length ? (
+        <Row gap={6}>
+          <Icon name="bookmark" size={14} color={colors.purpleDark} />
+          <Text variant="caption" color={colors.purpleDark}>{t('courses.requires', { courses: courseNames })}</Text>
+        </Row>
+      ) : null}
       <Divider color={colors.cardBorder} />
     </View>
   ) : null;
@@ -343,6 +352,19 @@ function JoinPanel({ task, mine, layout }: { task: TaskWithEvent; mine: boolean;
       <>
         {summary}
         <Button title={t('join.signInToJoin')} size="lg" onPress={() => router.push('/sign-in')} />
+      </>,
+    );
+  }
+
+  if (!meetsCourses) {
+    return wrap(
+      <>
+        {summary}
+        <View style={{ gap: 6 }}>
+          <Text variant="label">{t('courses.needTitle', { courses: courseNames })}</Text>
+          <Text variant="caption">{t('courses.needBody')}</Text>
+        </View>
+        <Button title={t('courses.update')} variant="outline" size="lg" onPress={() => router.push('/availability')} />
       </>,
     );
   }

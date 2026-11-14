@@ -11,7 +11,7 @@ import { Text } from '@/components/Text';
 import type { Period, Slot } from '@/domain/seva';
 import { colors, fonts, radius } from '@/theme/tokens';
 
-import { detectLocation, INTERESTS, PERIODS, RADII } from './prefs';
+import { COURSES, detectLocation, INTERESTS, PERIODS, RADII } from './prefs';
 
 export type LocationValue = { city: string; latitude: number | null; longitude: number | null; radius_km: number };
 
@@ -200,3 +200,18 @@ const styles = StyleSheet.create({
   },
   cellOn: { backgroundColor: colors.purple, borderColor: colors.purple },
 });
+
+/** Art of Living courses the volunteer has completed. Organizers can require one for a seva. */
+export function CoursesPicker({ value, onChange, hint }: { value: string[]; onChange: (v: string[]) => void; hint?: string }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ gap: 10 }}>
+      {hint ? <Text variant="caption">{hint}</Text> : null}
+      <View accessibilityRole="none" accessibilityLabel={t('courses.title')} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {COURSES.map((k) => (
+          <Chip key={k} label={t(`courses.${k}`)} selected={value.includes(k)} onPress={() => onChange(value.includes(k) ? value.filter((x) => x !== k) : [...value, k])} />
+        ))}
+      </View>
+    </View>
+  );
+}

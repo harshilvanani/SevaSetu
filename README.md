@@ -41,6 +41,38 @@ All of these live in the database, so no client can bypass them:
 - **Organizations** need platform-admin approval before they can create events.
 - **Verified hours.** Role tasks count the task's scheduled duration once the organizer marks the position as served. Quantity tasks count verified units × minutes-per-unit.
 
+## Website
+
+```bash
+npm run build:web
+```
+
+This builds the website into `dist/`: the web app, an `.htaccess` (HTTPS, deep links such as `/seva/<id>`, caching), link-preview tags, and the files that make it installable on a phone or computer (`manifest.webmanifest`, `sw.js`, icons). Upload the contents of `dist/` to the site's `public_html`. Set `EXPO_PUBLIC_SITE_URL` in `.env` to the live address first.
+
+## Demo mode
+
+Super admins can try the app as a volunteer or an organizer without touching real data: **Admin console → Demo mode → View as…**. A banner at the top shows who you are viewing as, with **Switch to…** and **Back to admin**.
+
+- Demo people and the demo organization (“Demo Seva Centre”) are walled off in the database: real users never see demo seva, demo accounts can't join real seva, and demo numbers are left out of the admin overview.
+- **Reset demo data** (same page) puts the demo events, joins and reports back to the starting point.
+- One-time setup per project, after `npm run db:migrate`: `node scripts/demo-setup.mjs` (needs the same `SUPABASE_PROJECT_REF` / `SUPABASE_ACCESS_TOKEN` as the database workflow). It creates the three demo logins with random passwords that only admins can read.
+
+## Donations (Stripe Connect)
+
+Organizers create donation campaigns (**Donations** tab). Anyone can give from the **Give** page, with no account needed. Each organization connects its own Stripe account, and donations go straight to it. Three Edge Functions handle it: `stripe-connect`, `donate-checkout` and `stripe-webhook`.
+
+```bash
+node scripts/deploy-functions.mjs   # deploys all three (needs SUPABASE_PROJECT_REF / SUPABASE_ACCESS_TOKEN)
+```
+
+One-time setup:
+1. In Stripe (start in test mode), turn on **Connect** (Dashboard → Connect → Get started). New Connect platforms use Stripe's Accounts v2, which `stripe-connect` already uses.
+2. In Supabase → Edge Functions → Secrets, add `STRIPE_SECRET_KEY` (`sk_test_…`).
+3. In Stripe → Developers → Webhooks, add an endpoint listening to **events on Connected accounts**: `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`. Use the events `checkout.session.completed`, `checkout.session.expired`, `invoice.paid`, `charge.refunded` and `account.updated`. Copy its signing secret into the Supabase secret `STRIPE_WEBHOOK_SECRET`.
+4. Optional: `ALLOWED_ORIGINS` (comma-separated) if the website moves to a new domain.
+
+An organizer finishes Stripe's own form from **Donations → Connect Stripe**, then taps **Check status** (it also refreshes when they come back from Stripe). Until then, and until the keys exist, campaign pages show "Donations open soon".
+
 ## Database workflow
 
 ```bash
@@ -52,6 +84,10 @@ npm run db:types     # regenerate src/lib/database.types.ts
 ```
 
 CI (`.github/workflows/ci.yml`) runs typecheck, lint and unit tests, plus the pgTAP suite against a local Supabase (`supabase db start && supabase test db`).
+
+## Email links
+
+Account-confirmation and password-reset emails always link to the **website** (`EXPO_PUBLIC_SITE_URL`), whichever app the person signed up from, so the links work on any device. Set it to the live web address, and add `<that address>/**` to Supabase's redirect URLs.
 
 ## One-time Supabase dashboard setup
 

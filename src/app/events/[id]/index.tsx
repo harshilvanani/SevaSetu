@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { useConfirm } from '@/components/ConfirmDialog';
 import { Badge } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Card, Divider, EmptyState, Row, Screen, TopBar, useLayout } from '@/components/Layout';
@@ -13,23 +14,22 @@ import {
   type TaskAssignment,
   useCompleteAssignment,
   useDeleteEvent,
+  useHideSuggestions,
   useOrgEvent,
   useProfileNames,
   usePublishEvent,
+  useReopenEvent,
   useSetEventStatus,
   useTaskAssignments,
 } from '@/features/org/api';
+import { AccessCard } from '@/features/org/AccessCard';
 import { OrganizerGate, StatusBadge, useStaffingText } from '@/features/org/components';
 import { StepHeader } from '@/features/org/EventForm';
+import { exportVolunteers } from '@/features/org/export';
+import { suggestedSeva, useLocalized, useSaveTemplate, useTemplates } from '@/features/org/templates';
 import { formatDay, formatRange } from '@/lib/format';
 import { errorCode, type Tables } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
-
-const confirm = (msg: string, onYes: () => void) => {
-  if (Platform.OS === 'web') {
-    if (window.confirm(msg)) onYes();
-  } else Alert.alert(msg, undefined, [{ text: 'Cancel', style: 'cancel' }, { text: 'OK', style: 'destructive', onPress: onYes }]);
-};
 
 export default function ManageEventScreen() {
   const { t } = useTranslation();
@@ -39,7 +39,7 @@ export default function ManageEventScreen() {
   return (
     <OrganizerGate>
       {() => (
-        <Screen header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={1100} refreshing={event.isRefetching} onRefresh={() => event.refetch()}>
+        <Screen title={t('org.events')} header={<TopBar onBack={back} title={event.data?.event.title} />} maxWidth={1100} refreshing={event.isRefetching} onRefresh={() => event.refetch()}>
           {event.data ? <Manage event={event.data.event} /> : <Text variant="caption">{t('common.loading')}</Text>}
         </Screen>
       )}
@@ -53,14 +53,24 @@ function Manage({ event }: { event: OrgEvent }) {
   const publish = usePublishEvent();
   const setStatus = useSetEventStatus();
   const del = useDeleteEvent();
+  const reopen = useReopenEvent();
+  const hide = useHideSuggestions();
+  const templates = useTemplates();
+  const saveTemplate = useSaveTemplate();
+  const localized = useLocalized();
   const assignments = useTaskAssignments(event.seva_tasks.map((x) => x.id));
   const names = useProfileNames((assignments.data ?? []).map((a) => a.volunteer_id));
   const [publishError, setPublishError] = useState<string | null>(null);
+  const { ask, dialog } = useConfirm();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const isDraft = event.status === 'draft';
   const tasks = event.seva_tasks;
+  const template = templates.data?.find((x) => x.id === event.template_id);
+  const suggestions = template && event.status !== 'cancelled' && event.status !== 'completed' ? suggestedSeva(template.event_template_tasks, tasks.map((x) => x.title)) : [];
 
   const checks = [
-    { ok: event.title.trim().length > 1 && event.description.trim().length > 0, label: t('eventForm.checkTitle') },
+    { ok: event.title.trim().length > 1, label: t('eventForm.checkTitle') },
     { ok: new Date(event.ends_at) > new Date(event.starts_at), label: t('eventForm.checkDate') },
     { ok: event.mode === 'virtual' || !!event.address, label: t('eventForm.checkLocation') },
     { ok: tasks.length > 0, label: t('eventForm.checkTask') },
@@ -74,6 +84,18 @@ function Manage({ event }: { event: OrgEvent }) {
     } catch (e) {
       const code = errorCode(e);
       setPublishError(code === 'venue_required' ? t('eventForm.addressRequired') : code === 'task_required' ? t('eventForm.noTasks') : (e as Error).message);
+    }
+  };
+
+  const doExport = async () => {
+    setExporting(true);
+    setExportError(false);
+    try {
+      await exportVolunteers(event, assignments.data ?? [], t);
+    } catch {
+      setExportError(true);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -97,7 +119,7 @@ function Manage({ event }: { event: OrgEvent }) {
           ))}
           <Button title={t('eventForm.publish')} size="lg" disabled={!canPublish} loading={publish.isPending} onPress={doPublish} />
           {publishError ? <Text variant="caption" color={colors.danger}>{publishError}</Text> : null}
-          <Pressable accessibilityRole="button" onPress={() => confirm(t('eventForm.deleteDraft'), () => del.mutate(event.id, { onSuccess: () => router.replace('/events') }))} style={{ alignSelf: 'center', padding: 6 }}>
+          <Pressable accessibilityRole="button" onPress={() => ask({ title: t('eventForm.deleteDraft'), body: t('eventForm.deleteDraftConfirm'), confirmLabel: t('common.delete'), destructive: true, onConfirm: async () => { await del.mutateAsync(event.id); router.replace('/events'); } })} style={{ alignSelf: 'center', padding: 6 }}>
             <Text variant="label" color={colors.danger}>{t('eventForm.deleteDraft')}</Text>
           </Pressable>
         </Card>
@@ -108,15 +130,58 @@ function Manage({ event }: { event: OrgEvent }) {
             <Text variant="label" color={colors.success}>{t('eventForm.published')}</Text>
           </Row>
           <Text variant="caption">{t('eventForm.publishedBody')}</Text>
-          <Button title={t('eventForm.completeEvent')} variant="outline" onPress={() => setStatus.mutate({ id: event.id, status: 'completed' })} />
-          <Button title={t('eventForm.cancelEvent')} variant="danger" onPress={() => confirm(t('eventForm.cancelConfirm'), () => setStatus.mutate({ id: event.id, status: 'cancelled' }))} />
+          <Button title={t('eventForm.completeEvent')} variant="outline" onPress={() => router.push({ pathname: '/events/[id]/complete', params: { id: event.id } })} />
+          <Button title={t('eventForm.cancelEvent')} variant="danger" onPress={() => ask({ title: t('eventForm.cancelEvent'), body: t('eventForm.cancelConfirm'), confirmLabel: t('eventForm.cancelEvent'), destructive: true, onConfirm: async () => { await setStatus.mutateAsync({ id: event.id, status: 'cancelled' }); } })} />
+        </Card>
+      ) : event.status === 'completed' ? (
+        <Card style={{ gap: 10, padding: 20 }}>
+          <Row gap={8}>
+            <Icon name="check" size={18} color={colors.success} />
+            <Text variant="label" color={colors.success}>{t('complete.done')}</Text>
+          </Row>
+          <Text variant="caption">{t('complete.doneBody')}</Text>
+          <Button
+            title={t('complete.undo')}
+            variant="outline"
+            onPress={() =>
+              ask({
+                title: t('complete.undoTitle'),
+                body: t('complete.undoBody'),
+                confirmLabel: t('complete.undo'),
+                onConfirm: async () => {
+                  await reopen.mutateAsync(event.id);
+                },
+              })
+            }
+          />
         </Card>
       ) : null}
+      {event.visibility === 'private' && event.status !== 'cancelled' ? <AccessCard eventId={event.id} orgId={event.org_id} isPrivate /> : null}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          ask({
+            title: t('eventForm.saveTemplate'),
+            body: t('eventForm.saveTemplateBody'),
+            fieldLabel: t('eventForm.templateName'),
+            initialValue: event.title,
+            singleLine: true,
+            reason: 'required',
+            confirmLabel: t('common.save'),
+            onConfirm: async (name) => {
+              await saveTemplate.mutateAsync({ orgId: event.org_id, name, visibility: event.visibility, tasks: tasks.map((x) => ({ name: x.title })) });
+            },
+          })
+        }
+        style={{ alignSelf: 'center', padding: 6 }}>
+        <Text variant="label" color={colors.purple}>{t('eventForm.saveTemplate')}</Text>
+      </Pressable>
     </View>
   );
 
   return (
     <View style={{ gap: 20 }}>
+      {dialog}
       <View style={{ gap: 10 }}>
         <Row gap={10} wrap>
           <Text variant="h1" style={{ flexShrink: 1 }}>{event.title}</Text>
@@ -126,9 +191,16 @@ function Manage({ event }: { event: OrgEvent }) {
           {when} · {t(`availability.modes.${event.mode}`)} · {event.visibility === 'public' ? t('seva.public') : t('seva.private')}
           {event.venue_name || event.address ? ` · ${event.venue_name ?? event.address}` : ''}
         </Text>
-        <Row gap={10}>
+        <Row gap={10} wrap>
           <Button title={t('common.edit')} icon="edit" variant="outline" onPress={() => router.push({ pathname: '/events/[id]/edit', params: { id: event.id } })} />
+          {event.status === 'draft' || event.status === 'published' ? (
+            <Button title={t('find.open')} icon="search" variant="outline" onPress={() => router.push({ pathname: '/events/[id]/find', params: { id: event.id } })} />
+          ) : null}
+          {(assignments.data ?? []).length > 0 ? (
+            <Button title={t('export.download')} icon="inbox" variant="outline" loading={exporting} onPress={doExport} />
+          ) : null}
         </Row>
+        {exportError ? <Text variant="caption" color={colors.danger}>{t('common.somethingWrong')}</Text> : null}
         {isDraft ? <StepHeader step={tasks.length ? 3 : 2} /> : null}
       </View>
 
@@ -138,6 +210,27 @@ function Manage({ event }: { event: OrgEvent }) {
             <Text variant="h3">{t('eventForm.tasksInEvent')} · {tasks.length}</Text>
             <Button title={t('eventForm.addAnother')} icon="plus" variant="secondary" onPress={() => router.push({ pathname: '/events/[id]/task', params: { id: event.id } })} />
           </Row>
+          {suggestions.length ? (
+            <Card style={{ gap: 10, padding: 20, backgroundColor: colors.purpleTint }}>
+              <Text variant="h3">{t('eventForm.suggested', { name: localized(template!) })}</Text>
+              <Text variant="caption" color={colors.purpleDark}>{t('eventForm.suggestedBody')}</Text>
+              <Row gap={8} wrap>
+                {suggestions.map((x) => (
+                  <Pressable
+                    key={x.id}
+                    accessibilityRole="button"
+                    onPress={() => router.push({ pathname: '/events/[id]/task', params: { id: event.id, name: localized(x) } })}
+                    style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 38, borderRadius: 999, backgroundColor: pressed ? colors.border : colors.white, borderWidth: 1, borderColor: colors.border })}>
+                    <Icon name="plus" size={14} color={colors.purple} />
+                    <Text variant="bodySm" weight="medium">{localized(x).trim()}</Text>
+                  </Pressable>
+                ))}
+              </Row>
+              <Pressable accessibilityRole="button" onPress={() => hide.mutate(event.id)} style={{ alignSelf: 'flex-start', paddingVertical: 4 }}>
+                <Text variant="label" color={colors.purpleDark}>{t('eventForm.hideSuggestions')}</Text>
+              </Pressable>
+            </Card>
+          ) : null}
           {tasks.length === 0 ? <EmptyState title={t('eventForm.noTasks')} /> : null}
           {tasks.map((task) => (
             <TaskCard key={task.id} task={task} assignments={(assignments.data ?? []).filter((a) => a.task_id === task.id)} names={names.data ?? {}} />

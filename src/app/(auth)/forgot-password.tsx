@@ -32,7 +32,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <Screen maxWidth={460} header={<TopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))} />}>
+    <Screen title={t('auth.resetTitle')} maxWidth={460} header={<TopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/sign-in'))} />}>
       <View style={{ gap: 8, paddingTop: 12 }}>
         <Text variant="h1">{t('auth.resetTitle')}</Text>
         <Text variant="bodySm" color={colors.muted}>{t('auth.resetBody')}</Text>

@@ -8,7 +8,7 @@ import { Card, Row, Screen, useLayout } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import type { Slot } from '@/domain/seva';
 import { type Profile, useAuth } from '@/features/auth/AuthProvider';
-import { AvailabilityGrid, InterestsEditor, LocationEditor, type LocationValue, ServePrefsEditor } from '@/features/profile/editors';
+import { AvailabilityGrid, CoursesPicker, InterestsEditor, LocationEditor, type LocationValue, ServePrefsEditor } from '@/features/profile/editors';
 import { geocodeCity, useAvailability, useSaveAvailability, useSaveProfile } from '@/features/profile/prefs';
 import { colors } from '@/theme/tokens';
 
@@ -19,7 +19,7 @@ export default function AvailabilityScreen() {
 
   if (!session) {
     return (
-      <Screen maxWidth={560}>
+      <Screen title={t('availability.title')} maxWidth={560}>
         <View style={{ paddingTop: 24, gap: 12 }}>
           <Text variant="h1">{t('profile.guestTitle')}</Text>
           <Text variant="body" color={colors.body}>{t('profile.guestBody')}</Text>
@@ -28,7 +28,7 @@ export default function AvailabilityScreen() {
       </Screen>
     );
   }
-  if (!profile || !existing.data) return <Screen><Text variant="caption">{t('common.loading')}</Text></Screen>;
+  if (!profile || !existing.data) return <Screen title={t('availability.title')}><Text variant="caption">{t('common.loading')}</Text></Screen>;
   return <PreferencesForm profile={profile} initialSlots={existing.data} />;
 }
 
@@ -46,6 +46,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
     radius_km: profile.radius_km,
   });
   const [interests, setInterests] = useState({ interests: profile.interests, skills: profile.skills });
+  const [courses, setCourses] = useState<string[]>(profile.courses ?? []);
   const [prefs, setPrefs] = useState({
     serve_mode: profile.serve_mode,
     hours_per_week: (profile.hours_per_week as '1-2' | '3-5' | '6+' | null) ?? null,
@@ -59,7 +60,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
     }
     await Promise.all([
       saveSlots.mutateAsync(slots),
-      saveProfile.mutateAsync({ city: loc.city.trim() || null, latitude, longitude, radius_km: loc.radius_km, ...interests, ...prefs }),
+      saveProfile.mutateAsync({ city: loc.city.trim() || null, latitude, longitude, radius_km: loc.radius_km, ...interests, ...prefs, courses }),
     ]);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -68,7 +69,7 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
   const busy = saveSlots.isPending || saveProfile.isPending;
 
   return (
-    <Screen
+    <Screen title={t('availability.title')}
       maxWidth={960}
       footer={
         <Button title={saved ? t('availability.saved') : t('common.save')} icon={saved ? 'check' : undefined} size="lg" loading={busy} onPress={save} />
@@ -89,6 +90,10 @@ function PreferencesForm({ profile, initialSlots }: { profile: Profile; initialS
           <InterestsEditor interests={interests.interests} skills={interests.skills} onChange={setInterests} />
         </Card>
       </Row>
+      <Card style={{ gap: 14, padding: 20 }}>
+        <Text variant="h3">{t('courses.title')}</Text>
+        <CoursesPicker value={courses} onChange={setCourses} hint={t('courses.hint')} />
+      </Card>
     </Screen>
   );
 }

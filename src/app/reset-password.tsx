@@ -39,7 +39,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <Screen maxWidth={460}>
+    <Screen title={t('auth.newPasswordTitle')} maxWidth={460}>
       <View style={{ gap: 8, paddingTop: 32 }}>
         <Text variant="h1">{t('auth.newPasswordTitle')}</Text>
       </View>

@@ -78,7 +78,7 @@ function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
   ];
 
   return (
-    <Screen maxWidth={1240} refreshing={events.isRefetching} onRefresh={() => { events.refetch(); queue.refetch(); assignments.refetch(); }}>
+    <Screen title={t('org.dashboard')} maxWidth={1240} refreshing={events.isRefetching} onRefresh={() => { events.refetch(); queue.refetch(); assignments.refetch(); }}>
       <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 8 }} wrap gap={12}>
         <View style={{ gap: 4, flexShrink: 1 }}>
           <Text variant="overline" color={colors.purple}>{orgName}</Text>

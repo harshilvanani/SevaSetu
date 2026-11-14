@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, router, useLocalSearchParams } from 'expo-router';
+import Head from 'expo-router/head';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
@@ -16,6 +17,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Badge } from '@/components/Chip';
 import { Segmented } from '@/components/Segmented';
 import { Text } from '@/components/Text';
+import { useAppStore } from '@/lib/store';
 import {
   appleAuthAvailable,
   authErrorKey,
@@ -34,12 +36,17 @@ export default function SignInScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ mode?: Mode; invite?: string }>();
   const [mode, setMode] = useState<Mode>(params.mode === 'create' ? 'create' : 'signin');
+  const authNotice = useAppStore((s) => s.authNotice);
+  const setAuthNotice = useAppStore((s) => s.setAuthNotice);
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.cream }}
       contentContainerStyle={[{ flexGrow: 1 }, isDesktop && { flexDirection: 'row' }]}
       keyboardShouldPersistTaps="handled">
+      <Head>
+        <title>{`${mode === 'signin' ? t('auth.signIn') : t('auth.createAccount')} · SevaSetu`}</title>
+      </Head>
       {isDesktop ? <BrandPanel /> : <MobileHeader topInset={insets.top} compact={!isPhone} />}
       <View style={[styles.formSide, isDesktop && { paddingVertical: 48 }]}>
         <View style={styles.form}>
@@ -51,6 +58,14 @@ export default function SignInScreen() {
                 <Text variant="caption" color={colors.amberText}>{t('auth.invitedBody')}</Text>
               </View>
             </View>
+          ) : null}
+
+          {authNotice ? (
+            <Pressable accessibilityRole="alert" onPress={() => setAuthNotice(null)} style={styles.blocked}>
+              <Icon name="lock" size={18} color={colors.danger} />
+              <Text variant="bodySm" color={colors.danger} style={{ flex: 1 }}>{authNotice}</Text>
+              <Icon name="x" size={16} color={colors.danger} />
+            </Pressable>
           ) : null}
 
           <View style={{ gap: 6 }}>
@@ -97,9 +112,15 @@ export default function SignInScreen() {
             <Text variant="bodySm" weight="medium">{t('auth.browse')}</Text>
           </Pressable>
 
-          <Text variant="small" color={colors.muted} align="center" style={{ lineHeight: 19, fontFamily: fonts.regular }}>
-            {t('auth.legal')}
-          </Text>
+          <View style={{ gap: 6 }}>
+            <Text variant="small" color={colors.muted} align="center" style={{ lineHeight: 19, fontFamily: fonts.regular }}>
+              {t('auth.legal')}
+            </Text>
+            <Row gap={16} style={{ justifyContent: 'center' }}>
+              <Link href="/terms" style={styles.legalLink}>{t('auth.terms')}</Link>
+              <Link href="/privacy" style={styles.legalLink}>{t('auth.privacy')}</Link>
+            </Row>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -264,14 +285,28 @@ function EmailForm({ mode }: { mode: Mode }) {
   );
 }
 
+/** The sign-in photo in a fixed 16:9 frame so it lines up the same on every screen size. */
+function HeroPhoto({ radius: r, maxWidth }: { radius: number; maxWidth?: number }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ width: '100%', maxWidth, aspectRatio: 16 / 9, borderRadius: r, overflow: 'hidden', backgroundColor: colors.sand }}>
+      <Image
+        source={require('@/assets/images/signin-hero.jpg')}
+        accessibilityLabel={t('auth.heroPhotoAlt')}
+        style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+      />
+    </View>
+  );
+}
+
 function MobileHeader({ topInset, compact }: { topInset: number; compact: boolean }) {
   const { t } = useTranslation();
   return (
     <View style={[styles.mobileHeader, { paddingTop: topInset + 24 }, compact && { alignItems: 'center' }]}>
       <Logo size={44} />
-      <View style={{ gap: 6 }}>
+      <View style={{ gap: 6, alignItems: compact ? 'center' : 'flex-start' }}>
         <Text variant="overline" color={colors.purple}>{t('common.appName')}</Text>
-        <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32 }}>
+        <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32, textAlign: compact ? 'center' : 'left' }}>
           {t('common.taglineLead')}
           {'\n'}
           <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32, color: colors.orangeText }}>
@@ -279,6 +314,7 @@ function MobileHeader({ topInset, compact }: { topInset: number; compact: boolea
           </Text>
         </Text>
       </View>
+      <HeroPhoto radius={18} maxWidth={compact ? 480 : undefined} />
     </View>
   );
 }
@@ -289,11 +325,7 @@ function BrandPanel() {
     <View style={styles.brand}>
       <Logo size={52} />
       <View>
-        <View style={styles.photo}>
-          <Icon name="image" size={32} color="#6B4A2A" />
-          <Text variant="label" color="#6B4A2A">[Community photo]</Text>
-          <Text variant="caption" color="#6B4A2A" align="center">{t('auth.photoPlaceholder')}</Text>
-        </View>
+        <HeroPhoto radius={24} />
         <View style={[styles.floatCard, shadowRaised]}>
           <Row gap={6}>
             <Badge label="On-site" tone="purple" />
@@ -360,6 +392,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sand,
   },
   invite: { flexDirection: 'row', gap: 12, padding: 14, borderRadius: 14, backgroundColor: colors.amberTint },
+  legalLink: { color: colors.purple, fontFamily: fonts.semibold, fontSize: 13, padding: 4 },
+  blocked: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14, borderRadius: 14, backgroundColor: colors.dangerTint },
   notice: { flexDirection: 'row', gap: 10, padding: 12, borderRadius: 12, backgroundColor: colors.purpleTint, alignItems: 'center' },
   mobileHeader: {
     paddingHorizontal: 24,
@@ -377,18 +411,6 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
     paddingHorizontal: 56,
     backgroundColor: colors.peach,
-  },
-  photo: {
-    height: 300,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#E3B98F',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 24,
   },
   floatCard: {
     position: 'absolute',

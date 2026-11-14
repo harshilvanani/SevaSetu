@@ -10,6 +10,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import Head from 'expo-router/head';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { breakpoints, colors, fonts, radius, shadow } from '@/theme/tokens';
@@ -39,6 +40,7 @@ export function Screen({
   edges = ['top'],
   refreshing,
   onRefresh,
+  title,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -50,6 +52,8 @@ export function Screen({
   edges?: ('top' | 'bottom')[];
   refreshing?: boolean;
   onRefresh?: () => void;
+  /** Browser tab title on the web ("<title> · SevaSetu"). */
+  title?: string;
 }) {
   const insets = useSafeAreaInsets();
   const { isPhone } = useLayout();
@@ -63,6 +67,11 @@ export function Screen({
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.screen, { paddingTop: edges.includes('top') ? insets.top : 0 }]}>
+      {title ? (
+        <Head>
+          <title>{`${title} · SevaSetu`}</title>
+        </Head>
+      ) : null}
       {header}
       {scroll ? (
         <ScrollView

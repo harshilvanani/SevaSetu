@@ -70,7 +70,8 @@
     "db:migrate": "node scripts/db.mjs migrate",
     "db:seed": "node scripts/db.mjs file supabase/seed.sql",
     "db:test": "node scripts/db.mjs test",
-    "db:types": "bash scripts/gen-types.sh"
+    "db:types": "bash scripts/gen-types.sh",
+    "build:web": "bash scripts/build-web.sh"
   },
   "private": true,
   "jest": {

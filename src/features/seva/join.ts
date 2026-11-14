@@ -7,7 +7,7 @@ export type JoinResult =
   | { status: 'capacity_changed'; available: number }
   | { status: 'full' };
 
-const KNOWN = ['invitation_required', 'signup_closed', 'already_joined', 'quantity_exceeds_max', 'task_not_open', 'event_not_published'];
+const KNOWN = ['course_required', 'invitation_required', 'signup_closed', 'already_joined', 'quantity_exceeds_max', 'task_not_open', 'event_not_published'];
 export const joinErrorKey = (e: unknown) => {
   const code = errorCode(e);
   return KNOWN.includes(code) ? `join.errors.${code}` : 'join.errors.generic';

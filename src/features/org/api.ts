@@ -114,7 +114,7 @@ export function useProfileNames(ids: string[]) {
 function useInvalidateOrg() {
   const qc = useQueryClient();
   return () => {
-    for (const k of ['org-events', 'org-event', 'review-queue', 'task-assignments', 'task-invitations', 'discover', 'nav-badges', 'my-assignments']) {
+    for (const k of ['org-events', 'org-event', 'review-queue', 'task-assignments', 'task-invitations', 'discover', 'nav-badges', 'my-assignments', 'event-access', 'hours-candidates', 'private-events', 'templates', 'find-volunteers', 'volunteer-stats', 'notifications']) {
       qc.invalidateQueries({ queryKey: [k] });
     }
   };
@@ -127,6 +127,17 @@ export function useCreateOrganization() {
       const { data, error } = await supabase.rpc('create_organization', { p_name: v.name, p_city: v.city, p_description: v.description });
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => refreshProfile(),
+  });
+}
+
+export function useResubmitOrganization() {
+  const { refreshProfile } = useAuth();
+  return useMutation({
+    mutationFn: async (v: { id: string; name: string; city: string; description: string }) => {
+      const { error } = await supabase.rpc('resubmit_organization', { p_org: v.id, p_name: v.name, p_city: v.city, p_description: v.description });
+      if (error) throw error;
     },
     onSuccess: () => refreshProfile(),
   });
@@ -146,6 +157,7 @@ export type EventInput = {
   visibility: Enums<'visibility'>;
   online_details: string | null;
   contact_info: string | null;
+  template_id?: string | null;
 };
 
 export function useSaveEvent() {
@@ -189,8 +201,20 @@ export function usePublishEvent() {
 export function useSetEventStatus() {
   const invalidate = useInvalidateOrg();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: 'cancelled' | 'completed' }) => {
+    mutationFn: async ({ id, status }: { id: string; status: 'cancelled' }) => {
       const { error } = await supabase.from('events').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+/** Stop showing the template's suggested seva on an event. */
+export function useHideSuggestions() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (eventId: string) => {
+      const { error } = await supabase.from('events').update({ template_id: null }).eq('id', eventId);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -225,7 +249,7 @@ export type TaskInput = {
   ends_at: string | null;
   signup_deadline: string | null;
   mode: Enums<'participation_mode'>;
-  visibility: Enums<'visibility'>;
+  required_courses: string[];
 };
 
 export function useSaveTask() {
@@ -237,15 +261,11 @@ export function useSaveTask() {
       eventId,
       eventStatus,
       input,
-      invitees,
-      inviteDays,
     }: {
       id?: string;
       eventId: string;
       eventStatus: Enums<'event_status'>;
       input: TaskInput;
-      invitees: string[];
-      inviteDays: number;
     }) => {
       let taskId = id;
       if (id) {
@@ -260,10 +280,6 @@ export function useSaveTask() {
           .single();
         if (error) throw error;
         taskId = data.id;
-      }
-      if (invitees.length) {
-        const { error } = await supabase.rpc('invite_to_task', { p_task: taskId!, p_users: invitees, p_days: inviteDays });
-        if (error) throw error;
       }
       return taskId!;
     },
@@ -328,6 +344,149 @@ export function useSearchVolunteers(orgId: string | undefined, q: string) {
       const { data, error } = await supabase.rpc('search_volunteers', { p_org: orgId!, p_query: q });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Private-event requests and invitations
+// ---------------------------------------------------------------------------
+export type EventAccessRow = Tables<'event_access'> & { name: string };
+
+export function useEventAccess(eventId: string | undefined) {
+  return useQuery({
+    queryKey: ['event-access', eventId],
+    enabled: !!eventId,
+    queryFn: async (): Promise<EventAccessRow[]> => {
+      const { data, error } = await supabase.from('event_access').select('*').eq('event_id', eventId!).order('created_at', { ascending: false });
+      if (error) throw error;
+      const ids = [...new Set((data ?? []).map((r) => r.user_id))];
+      const names: Record<string, string> = {};
+      if (ids.length) {
+        const { data: people, error: pErr } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
+        if (pErr) throw pErr;
+        for (const p of people ?? []) names[p.id] = p.full_name || p.email || '—';
+      }
+      return (data ?? []).map((r) => ({ ...r, name: names[r.user_id] ?? '—' }));
+    },
+  });
+}
+
+export function useRespondRequest() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (v: { eventId: string; userId: string; approve: boolean }) => {
+      const { error } = await supabase.rpc('respond_event_request', { p_event: v.eventId, p_user: v.userId, p_approve: v.approve });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function useInviteToEvent() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (v: { eventId: string; userIds: string[]; days?: number }) => {
+      const { data, error } = await supabase.rpc('invite_to_event', { p_event: v.eventId, p_users: v.userIds, p_days: v.days ?? 7 });
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: () => {
+      invalidate();
+      return undefined;
+    },
+  });
+}
+
+export function useRevokeAccess() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (v: { eventId: string; userId: string }) => {
+      const { error } = await supabase.rpc('revoke_event_access', { p_event: v.eventId, p_user: v.userId });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Completing an event (hours) and finding volunteers
+// ---------------------------------------------------------------------------
+export type HoursCandidate = {
+  assignment_id: string;
+  task_id: string;
+  task_title: string;
+  volunteer_id: string;
+  volunteer_name: string;
+  estimate: number;
+  logged: number | null;
+};
+
+export function useHoursCandidates(eventId: string | undefined) {
+  return useQuery({
+    queryKey: ['hours-candidates', eventId],
+    enabled: !!eventId,
+    queryFn: async (): Promise<HoursCandidate[]> => {
+      const { data, error } = await supabase.rpc('event_hours_candidates', { p_event: eventId! });
+      if (error) throw error;
+      return (data ?? []) as HoursCandidate[];
+    },
+  });
+}
+
+export function useCompleteEvent() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (v: { eventId: string; hours: { assignment_id: string; hours: number }[] }) => {
+      const { error } = await supabase.rpc('complete_event', { p_event: v.eventId, p_hours: v.hours });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function useReopenEvent() {
+  const invalidate = useInvalidateOrg();
+  return useMutation({
+    mutationFn: async (eventId: string) => {
+      const { error } = await supabase.rpc('reopen_event', { p_event: eventId });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export type FoundVolunteer = {
+  id: string;
+  full_name: string;
+  city: string | null;
+  interests: string[];
+  skills: string[];
+  serve_mode: Enums<'serve_mode'>;
+  availability: { weekday: number; period: string }[];
+  distance_km: number | null;
+  score: number;
+  reasons: ('interest' | 'skills' | 'course' | 'available' | 'near' | 'online')[];
+  courses: string[];
+  onboarded: boolean;
+};
+
+export function useFindVolunteers(v: { eventId: string; taskId: string | null; skills: string[]; courses: string[]; onlyAvailable: boolean; onlyNear: boolean }) {
+  return useQuery({
+    queryKey: ['find-volunteers', v.eventId, v.taskId, v.skills.join(','), v.courses.join(','), v.onlyAvailable, v.onlyNear],
+    queryFn: async (): Promise<FoundVolunteer[]> => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const { data, error } = await supabase.rpc('find_volunteers', {
+        p_event: v.eventId,
+        p_task: v.taskId ?? undefined,
+        p_skills: v.skills,
+        p_only_available: v.onlyAvailable,
+        p_only_near: v.onlyNear,
+        p_tz: tz,
+        p_courses: v.courses,
+      });
+      if (error) throw error;
+      return (data ?? []) as unknown as FoundVolunteer[];
     },
   });
 }

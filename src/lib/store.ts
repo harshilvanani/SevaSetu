@@ -12,6 +12,9 @@ type AppState = {
   // Coarse location for guests (signed-in users keep it on their profile).
   guestCity: string | null;
   setGuestCity: (c: string | null) => void;
+  // Message shown once on the sign-in screen (not persisted).
+  authNotice: string | null;
+  setAuthNotice: (n: string | null) => void;
 };
 
 export const useAppStore = create<AppState>()(
@@ -23,7 +26,13 @@ export const useAppStore = create<AppState>()(
       setActiveOrgId: (activeOrgId) => set({ activeOrgId }),
       guestCity: null,
       setGuestCity: (guestCity) => set({ guestCity }),
+      authNotice: null,
+      setAuthNotice: (authNotice) => set({ authNotice }),
     }),
-    { name: 'sevasetu-app', storage: createJSONStorage(() => AsyncStorage) },
+    {
+      name: 'sevasetu-app',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (s) => ({ mode: s.mode, activeOrgId: s.activeOrgId, guestCity: s.guestCity }),
+    },
   ),
 );

@@ -15,7 +15,7 @@ if (Platform.OS !== 'web') {
   });
 }
 
-type NotificationData = { type?: string; task_id?: string; assignment_id?: string; org_id?: string; report_id?: string };
+type NotificationData = { type?: string; task_id?: string; assignment_id?: string; org_id?: string; report_id?: string; event_id?: string };
 
 /** Where a notification should take the user. */
 export function notificationHref(type: string, data: NotificationData) {
@@ -26,13 +26,26 @@ export function notificationHref(type: string, data: NotificationData) {
     case 'reminder':
       return data.assignment_id ? { pathname: '/my-seva' as const, params: { assignment: data.assignment_id } } : ('/my-seva' as const);
     case 'invited':
+      if (data.event_id) return { pathname: '/private-event/[id]' as const, params: { id: data.event_id } };
       return data.task_id ? { pathname: '/seva/[id]' as const, params: { id: data.task_id } } : ('/discover' as const);
     case 'report_submitted':
       return '/reviews' as const;
+    case 'event_request':
+      return data.event_id ? { pathname: '/events/[id]' as const, params: { id: data.event_id } } : ('/events' as const);
+    case 'event_approved':
+    case 'event_declined':
+      return data.event_id ? { pathname: '/private-event/[id]' as const, params: { id: data.event_id } } : ('/discover' as const);
+    case 'hours_logged':
+      return '/profile' as const;
     case 'org_pending':
       return '/admin' as const;
     case 'org_reviewed':
+    case 'account_unblocked':
       return '/profile' as const;
+    case 'event_cancelled':
+      return '/my-seva' as const;
+    case 'admin_role':
+      return '/admin' as const;
     default:
       return null;
   }
