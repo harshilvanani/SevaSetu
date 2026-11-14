@@ -66,12 +66,12 @@ node scripts/deploy-functions.mjs   # deploys all three (needs SUPABASE_PROJECT_
 ```
 
 One-time setup:
-1. In Stripe (start in test mode), turn on **Connect**.
+1. In Stripe (start in test mode), turn on **Connect** (Dashboard → Connect → Get started). New Connect platforms use Stripe's Accounts v2, which `stripe-connect` already uses.
 2. In Supabase → Edge Functions → Secrets, add `STRIPE_SECRET_KEY` (`sk_test_…`).
 3. In Stripe → Developers → Webhooks, add an endpoint listening to **events on Connected accounts**: `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`. Use the events `checkout.session.completed`, `checkout.session.expired`, `invoice.paid`, `charge.refunded` and `account.updated`. Copy its signing secret into the Supabase secret `STRIPE_WEBHOOK_SECRET`.
 4. Optional: `ALLOWED_ORIGINS` (comma-separated) if the website moves to a new domain.
 
-Until the keys exist, campaign pages show "Donations open soon".
+An organizer finishes Stripe's own form from **Donations → Connect Stripe**, then taps **Check status** (it also refreshes when they come back from Stripe). Until then, and until the keys exist, campaign pages show "Donations open soon".
 
 ## Database workflow
 

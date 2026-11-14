@@ -66,6 +66,7 @@ const en = {
     pillPrivate: 'Private seva stays invite-only',
     pillVerified: 'Impact counted once verified',
     heroBody: 'Find meaningful ways to help near you or online, join in a tap when spots are open, and see the real difference your time makes.',
+    heroPhotoAlt: 'A smiling teacher in white with a red and gold shawl, holding a peacock feather',
     photoPlaceholder: 'Volunteers serving together at an Art of Living seva event',
     errors: {
       blocked: 'This account has been blocked. If you think this is a mistake, contact harshil.vanani@gmail.com.',

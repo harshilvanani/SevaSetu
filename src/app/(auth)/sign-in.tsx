@@ -4,7 +4,7 @@ import Head from 'expo-router/head';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
@@ -285,14 +285,28 @@ function EmailForm({ mode }: { mode: Mode }) {
   );
 }
 
+/** The sign-in photo in a fixed 16:9 frame so it lines up the same on every screen size. */
+function HeroPhoto({ radius: r, maxWidth }: { radius: number; maxWidth?: number }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ width: '100%', maxWidth, aspectRatio: 16 / 9, borderRadius: r, overflow: 'hidden', backgroundColor: colors.sand }}>
+      <Image
+        source={require('@/assets/images/signin-hero.jpg')}
+        accessibilityLabel={t('auth.heroPhotoAlt')}
+        style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+      />
+    </View>
+  );
+}
+
 function MobileHeader({ topInset, compact }: { topInset: number; compact: boolean }) {
   const { t } = useTranslation();
   return (
     <View style={[styles.mobileHeader, { paddingTop: topInset + 24 }, compact && { alignItems: 'center' }]}>
       <Logo size={44} />
-      <View style={{ gap: 6 }}>
+      <View style={{ gap: 6, alignItems: compact ? 'center' : 'flex-start' }}>
         <Text variant="overline" color={colors.purple}>{t('common.appName')}</Text>
-        <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32 }}>
+        <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32, textAlign: compact ? 'center' : 'left' }}>
           {t('common.taglineLead')}
           {'\n'}
           <Text style={{ fontFamily: fonts.serifMedium, fontSize: 25, lineHeight: 32, color: colors.orangeText }}>
@@ -300,6 +314,7 @@ function MobileHeader({ topInset, compact }: { topInset: number; compact: boolea
           </Text>
         </Text>
       </View>
+      <HeroPhoto radius={18} maxWidth={compact ? 480 : undefined} />
     </View>
   );
 }
@@ -310,11 +325,7 @@ function BrandPanel() {
     <View style={styles.brand}>
       <Logo size={52} />
       <View>
-        <View style={styles.photo}>
-          <Icon name="image" size={32} color="#6B4A2A" />
-          <Text variant="label" color="#6B4A2A">[Community photo]</Text>
-          <Text variant="caption" color="#6B4A2A" align="center">{t('auth.photoPlaceholder')}</Text>
-        </View>
+        <HeroPhoto radius={24} />
         <View style={[styles.floatCard, shadowRaised]}>
           <Row gap={6}>
             <Badge label="On-site" tone="purple" />
@@ -400,18 +411,6 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
     paddingHorizontal: 56,
     backgroundColor: colors.peach,
-  },
-  photo: {
-    height: 300,
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#E3B98F',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 24,
   },
   floatCard: {
     position: 'absolute',

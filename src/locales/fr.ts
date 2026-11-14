@@ -67,6 +67,7 @@ const fr: Strings = {
     pillPrivate: 'Les seva privées restent sur invitation',
     pillVerified: 'Impact compté une fois vérifié',
     heroBody: 'Trouvez des façons concrètes d’aider près de chez vous ou en ligne, inscrivez-vous en un geste quand des places sont libres, et voyez la vraie différence que fait votre temps.',
+    heroPhotoAlt: 'Un enseignant souriant en blanc, avec un châle rouge et or, tenant une plume de paon',
     photoPlaceholder: 'Des bénévoles servent ensemble lors d’une seva de l’Art de Vivre',
     errors: {
       blocked: 'Ce compte a été bloqué. S’il s’agit d’une erreur, écrivez à harshil.vanani@gmail.com.',
