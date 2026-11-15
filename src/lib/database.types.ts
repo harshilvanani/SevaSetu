@@ -1322,6 +1322,13 @@ export type Database = {
       delete_my_account: { Args: never; Returns: undefined }
       effective_hours: { Args: { p_assignment: string }; Returns: number }
       estimate_hours: { Args: { p_assignment: string }; Returns: number }
+      event_access_people: {
+        Args: { p_event: string }
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
       event_hours_candidates: {
         Args: { p_event: string }
         Returns: {

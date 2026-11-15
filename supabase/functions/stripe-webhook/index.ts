@@ -24,31 +24,56 @@ Deno.serve(async (req) => {
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const now = new Date().toISOString();
 
+  // Every event must come from the Stripe account connected to the organization it claims to be about.
+  const eventAccount = (event as unknown as { account?: string }).account ?? null;
+  const accountOf = async (orgId: string) => {
+    const { data } = await admin.from('org_payments').select('stripe_account_id').eq('org_id', orgId).maybeSingle();
+    return (data?.stripe_account_id as string | undefined) ?? null;
+  };
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const s = event.data.object as Stripe.Checkout.Session;
       const id = s.metadata?.donation_id;
-      if (id && (s.payment_status === 'paid' || s.mode === 'subscription')) {
-        await admin.from('donations').update({
-          status: 'paid', paid_at: now,
-          stripe_payment_intent: typeof s.payment_intent === 'string' ? s.payment_intent : null,
-          stripe_subscription_id: typeof s.subscription === 'string' ? s.subscription : null,
-        }).eq('id', id).eq('status', 'pending');
+      if (!id || !(s.payment_status === 'paid' || s.mode === 'subscription')) break;
+      // The donation is matched on the session we created for it, not on metadata alone.
+      const { data: d } = await admin.from('donations').select('*').eq('id', id).eq('stripe_session_id', s.id).maybeSingle();
+      if (!d || d.status !== 'pending') break;
+      const expected = d.amount_cents + d.fee_cents;
+      if (!eventAccount || eventAccount !== (await accountOf(d.org_id)) || s.amount_total !== expected || (s.currency ?? '').toLowerCase() !== d.currency) {
+        console.error('donation mismatch', { donation: id, session: s.id, account: eventAccount, amount_total: s.amount_total, expected });
+        break;
       }
+      await admin.from('donations').update({
+        status: 'paid', paid_at: now,
+        stripe_payment_intent: typeof s.payment_intent === 'string' ? s.payment_intent : null,
+        stripe_subscription_id: typeof s.subscription === 'string' ? s.subscription : null,
+      }).eq('id', id).eq('status', 'pending');
       break;
     }
     case 'checkout.session.expired': {
       const s = event.data.object as Stripe.Checkout.Session;
-      if (s.metadata?.donation_id) await admin.from('donations').update({ status: 'failed' }).eq('id', s.metadata.donation_id).eq('status', 'pending');
+      if (s.metadata?.donation_id) {
+        await admin.from('donations').update({ status: 'failed' }).eq('id', s.metadata.donation_id).eq('stripe_session_id', s.id).eq('status', 'pending');
+      }
       break;
     }
     case 'invoice.paid': {
       // Later monthly payments: the first one is recorded by checkout.session.completed.
-      const inv = event.data.object as Stripe.Invoice;
-      const sub = typeof inv.subscription === 'string' ? inv.subscription : null;
+      const inv = event.data.object as Stripe.Invoice & {
+        subscription?: string | { id: string } | null;
+        payment_intent?: string | null;
+        parent?: { subscription_details?: { subscription?: string | null } | null } | null;
+      };
+      const raw = inv.subscription ?? inv.parent?.subscription_details?.subscription ?? null;
+      const sub = typeof raw === 'string' ? raw : raw?.id ?? null;
       if (!sub || inv.billing_reason === 'subscription_create') break;
-      const { data: first } = await admin.from('donations').select('*').eq('stripe_subscription_id', sub).order('created_at').limit(1).maybeSingle();
+      const { data: first } = await admin.from('donations').select('*').eq('stripe_subscription_id', sub).eq('status', 'paid').order('created_at').limit(1).maybeSingle();
       if (!first) break;
+      if (!eventAccount || eventAccount !== (await accountOf(first.org_id)) || inv.amount_paid !== first.amount_cents + first.fee_cents) {
+        console.error('invoice mismatch', { invoice: inv.id, subscription: sub, account: eventAccount, amount_paid: inv.amount_paid });
+        break;
+      }
       await admin.from('donations').upsert({
         campaign_id: first.campaign_id, org_id: first.org_id, donor_id: first.donor_id, donor_name: first.donor_name,
         donor_email: first.donor_email, amount_cents: first.amount_cents, fee_cents: first.fee_cents, interval: 'month',
@@ -60,12 +85,16 @@ Deno.serve(async (req) => {
     case 'charge.refunded': {
       const ch = event.data.object as Stripe.Charge;
       if (typeof ch.payment_intent === 'string' && ch.refunded) {
-        await admin.from('donations').update({ status: 'refunded' }).eq('stripe_payment_intent', ch.payment_intent);
+        const { data: d } = await admin.from('donations').select('id, org_id').eq('stripe_payment_intent', ch.payment_intent).maybeSingle();
+        if (d && eventAccount && eventAccount === (await accountOf(d.org_id))) {
+          await admin.from('donations').update({ status: 'refunded' }).eq('id', d.id);
+        }
       }
       break;
     }
     case 'account.updated': {
       const acct = event.data.object as Stripe.Account;
+      if (eventAccount && eventAccount !== acct.id) break;
       await admin.from('org_payments').update({
         charges_enabled: acct.charges_enabled, details_submitted: acct.details_submitted, updated_at: now,
       }).eq('stripe_account_id', acct.id);

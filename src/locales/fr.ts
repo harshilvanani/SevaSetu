@@ -734,6 +734,7 @@ const fr: Strings = {
     csv: { date: 'Date', name: 'Nom', email: 'E-mail', amount: 'Montant (CAD)', fee: 'Frais couverts (CAD)', type: 'Type', status: 'Statut' },
     errors: {
       stripe_not_configured: 'Stripe n’est pas encore configuré pour SevaSetu. Réessayez plus tard.',
+      owner_only: 'Seul un propriétaire de l’organisation peut configurer les paiements.',
       not_authorized: 'Seuls les organisateurs de cette organisation peuvent faire cela.',
       not_available: 'Les paiements ne sont pas disponibles pour cette organisation.',
       not_authenticated: 'Veuillez vous reconnecter.',

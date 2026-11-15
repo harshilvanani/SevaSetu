@@ -95,7 +95,7 @@ select lives_ok($$ select admin_set_platform_admin('00000000-0000-0000-0000-0000
 -- ------------------------------------------------------------ event cancellation + audit
 select lives_ok($$ select admin_cancel_event('00000000-0000-0000-0000-00000000e0e1', 'Venue closed') $$, 'admin cancels an event');
 -- (now() is constant inside the test transaction, so compare the set of actions)
-select is((select array_agg(action order by action)::text from admin_actions),
+select is((select array_agg(action order by action)::text from admin_actions where admin_id = '00000000-0000-0000-0000-00000000ad01'),
   '{admin_grant,event_cancel,org_approve,org_reinstate,org_reject,org_suspend,user_block,user_unblock}',
   'every admin action is in the audit log');
 

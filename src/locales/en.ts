@@ -733,6 +733,7 @@ const en = {
     csv: { date: 'Date', name: 'Name', email: 'Email', amount: 'Amount (CAD)', fee: 'Fee covered (CAD)', type: 'Type', status: 'Status' },
     errors: {
       stripe_not_configured: 'Stripe isn’t set up for SevaSetu yet. Please try again later.',
+      owner_only: 'Only an owner of the organization can set up payments.',
       not_authorized: 'Only organizers of this organization can do this.',
       not_available: 'Payments aren’t available for this organization.',
       not_authenticated: 'Please sign in again.',

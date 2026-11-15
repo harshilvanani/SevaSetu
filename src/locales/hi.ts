@@ -734,6 +734,7 @@ const hi: Strings = {
     csv: { date: 'तारीख', name: 'नाम', email: 'ईमेल', amount: 'राशि (CAD)', fee: 'भरा गया शुल्क (CAD)', type: 'प्रकार', status: 'स्थिति' },
     errors: {
       stripe_not_configured: 'सेवासेतु के लिए Stripe अभी सेट नहीं है। कृपया बाद में कोशिश करें।',
+      owner_only: 'केवल संगठन के स्वामी ही भुगतान सेट कर सकते हैं।',
       not_authorized: 'केवल इस संगठन के आयोजक यह कर सकते हैं।',
       not_available: 'इस संगठन के लिए भुगतान उपलब्ध नहीं हैं।',
       not_authenticated: 'कृपया फिर से साइन इन करें।',

@@ -49,6 +49,9 @@ Deno.serve(async (req) => {
     if (!org_id || (action !== 'link' && action !== 'status')) return reply({ error: 'bad_request' }, 400);
     const { data: canManage } = await userClient.rpc('can_manage_org', { p_org: org_id });
     if (!canManage) return reply({ error: 'not_authorized' }, 403);
+    // Bank details are entered in Stripe's onboarding, so only an owner of the organization may open it.
+    const { data: member } = await admin.from('org_members').select('role').eq('org_id', org_id).eq('user_id', who.user.id).maybeSingle();
+    if (action === 'link' && member?.role !== 'owner') return reply({ error: 'owner_only' }, 403);
     const { data: org } = await admin.from('organizations').select('id, name, is_demo').eq('id', org_id).single();
     if (!org || org.is_demo) return reply({ error: 'not_available' }, 403);
 

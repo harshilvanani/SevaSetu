@@ -73,6 +73,13 @@ RewriteRule ^ index.html [L]
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   Header always set X-Content-Type-Options "nosniff"
+  # No other site may show SevaSetu inside a frame (clickjacking)
+  Header always set X-Frame-Options "DENY"
+  # Browsers remember to use HTTPS for a year
+  Header always set Strict-Transport-Security "max-age=31536000"
+  Header always set Permissions-Policy "camera=(), microphone=(), payment=(), geolocation=(self)"
+  # Only our own scripts run; data goes only to our Supabase project; images may come from https sites (campaign pictures)
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' __SUPABASE_ORIGIN__ __SUPABASE_WS__; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
 
@@ -80,5 +87,10 @@ RewriteRule ^ index.html [L]
   AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
 </IfModule>
 HTACCESS
+
+SUPABASE_ORIGIN="$(grep -E '^EXPO_PUBLIC_SUPABASE_URL=' .env 2>/dev/null | cut -d= -f2- | sed 's:/*$::' || true)"
+SUPABASE_ORIGIN="${EXPO_PUBLIC_SUPABASE_URL:-$SUPABASE_ORIGIN}"
+SUPABASE_WS="$(printf '%s' "$SUPABASE_ORIGIN" | sed 's#^https:#wss:#')"
+sed -i "s#__SUPABASE_ORIGIN__#${SUPABASE_ORIGIN}#; s#__SUPABASE_WS__#${SUPABASE_WS}#" dist/.htaccess
 
 echo "Built dist/ ($(du -sh dist | cut -f1)). Upload the contents of dist/ to the website's public_html."

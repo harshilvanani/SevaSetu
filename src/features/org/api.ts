@@ -360,13 +360,11 @@ export function useEventAccess(eventId: string | undefined) {
     queryFn: async (): Promise<EventAccessRow[]> => {
       const { data, error } = await supabase.from('event_access').select('*').eq('event_id', eventId!).order('created_at', { ascending: false });
       if (error) throw error;
-      const ids = [...new Set((data ?? []).map((r) => r.user_id))];
+      // Names only (no contact details) through an organizer-only function: invited people's profiles stay private.
       const names: Record<string, string> = {};
-      if (ids.length) {
-        const { data: people, error: pErr } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
-        if (pErr) throw pErr;
-        for (const p of people ?? []) names[p.id] = p.full_name || p.email || '—';
-      }
+      const { data: people, error: pErr } = await supabase.rpc('event_access_people', { p_event: eventId! });
+      if (pErr) throw pErr;
+      for (const p of people ?? []) names[p.user_id] = p.full_name || '—';
       return (data ?? []).map((r) => ({ ...r, name: names[r.user_id] ?? '—' }));
     },
   });
