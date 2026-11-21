@@ -22,7 +22,8 @@ export default function EditEventScreen() {
           {event.data?.event.status === 'draft' ? <StepHeader step={1} /> : null}
           {event.data ? (
             <EventForm
-              orgName={org.name}
+              orgId={org.id}
+                  orgName={org.name}
               initial={event.data.event}
               details={event.data.details}
               busy={save.isPending}

@@ -9,11 +9,15 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Card, EmptyState, Row, Screen, SectionHeader, useLayout } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import { remaining } from '@/domain/seva';
-import { type OrgEvent, useOrgEvents, useProfileNames, useReviewQueue, useTaskAssignments } from '@/features/org/api';
-import { MetricCard, OrganizerGate, OrgSwitcher, useStaffingText } from '@/features/org/components';
-import { EventsTable } from '@/features/org/EventsTable';
+import { useAuth } from '@/features/auth/AuthProvider';
+import { useOrgInsights } from '@/features/insights/api';
+import { StatTile } from '@/features/insights/charts';
+import { useLabels } from '@/features/insights/labels';
+import { AlertList, DataHealth, MomentumChart, Panel, RegionalCoverage, UpcomingList } from '@/features/insights/sections';
+import { type OrgEvent, useOrgEvents, useProfileNames, useReviewQueue } from '@/features/org/api';
+import { OrganizerGate, OrgSwitcher, useStaffingText } from '@/features/org/components';
 import { ReviewCard } from '@/features/org/ReviewCard';
-import { dayTile, formatDay } from '@/lib/format';
+import { firstName } from '@/lib/format';
 import { intlLocale } from '@/lib/i18n';
 import type { Tables } from '@/lib/supabase';
 import { colors, fonts, radius } from '@/theme/tokens';
@@ -27,8 +31,11 @@ const DAY = 86_400_000;
 function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
   const { t } = useTranslation();
   const { isDesktop, isPhone } = useLayout();
+  const { profile } = useAuth();
+  const L = useLabels();
   const events = useOrgEvents(orgId);
   const queue = useReviewQueue(orgId);
+  const insights = useOrgInsights(orgId);
   const staffing = useStaffingText();
   const [now] = useState(() => Date.now());
 
@@ -36,37 +43,12 @@ function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
   const live = all.filter((e) => e.status === 'published' && new Date(e.ends_at).getTime() >= now);
   const drafts = all.filter((e) => e.status === 'draft');
   const liveTasks = live.flatMap((e) => e.seva_tasks.map((task) => ({ ...task, event: e })));
-  const assignments = useTaskAssignments(liveTasks.map((x) => x.id));
-  const activeVolunteers = new Set((assignments.data ?? []).filter((a) => a.status === 'active').map((a) => a.volunteer_id)).size;
   const openTasks = liveTasks.filter((x) => x.status === 'open' && remaining(x) > 0);
-  const openPositions = openTasks.reduce((n, x) => n + remaining(x), 0);
   const startOf = (x: (typeof liveTasks)[number]) => x.starts_at ?? x.event.starts_at;
   const needThisWeek = openTasks.filter((x) => new Date(startOf(x)).getTime() - now < 7 * DAY).length;
-  const oldest = queue.data?.[0];
   const names = useProfileNames((queue.data ?? []).map((r) => r.assignments.volunteer_id));
-
-  // Upcoming deadlines (next 14 days)
-  type Deadline = { at: string; title: string; detail: string; tone: 'amber' | 'purple' };
-  const deadlines: Deadline[] = [];
-  for (const x of liveTasks) {
-    const left = remaining(x);
-    if (x.type === 'role' && left > 0) {
-      deadlines.push({ at: startOf(x), title: x.title, detail: t('org.deadlineOpen', { count: left }), tone: 'amber' });
-    }
-    if (x.type === 'quantity') {
-      const due = x.signup_deadline ?? x.ends_at ?? x.event.ends_at;
-      const unverified = (x.target_qty ?? 0) - x.verified_total;
-      if (left > 0 && x.signup_deadline) deadlines.push({ at: x.signup_deadline, title: x.title, detail: t('org.signupsClose', { left: `${left} ${x.unit}` }), tone: 'amber' });
-      else if (unverified > 0) deadlines.push({ at: due, title: x.title, detail: t('org.deadlineUnverified', { count: unverified, unit: x.unit }), tone: 'purple' });
-    }
-  }
-  const upcoming = deadlines
-    .filter((d) => {
-      const ms = new Date(d.at).getTime() - now;
-      return ms > -DAY && ms < 14 * DAY;
-    })
-    .sort((a, b) => a.at.localeCompare(b.at))
-    .slice(0, 5);
+  const data = insights.data;
+  const k = data?.kpis;
 
   const today = new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
   const firstEvent = live[0] ?? drafts[0];
@@ -75,10 +57,24 @@ function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
     { icon: 'plus', label: t('org.createEvent'), onPress: () => router.push('/events/new') },
     ...(firstEvent ? [{ icon: 'clipboard' as IconName, label: t('org.addTask'), onPress: () => router.push({ pathname: '/events/[id]/task', params: { id: firstEvent.id } }) }] : []),
     { icon: 'check', label: t('org.reviewProgress'), onPress: () => router.navigate('/reviews') },
+    ...(isDesktop
+      ? []
+      : [
+          { icon: 'users' as IconName, label: t('nav.volunteers'), onPress: () => router.navigate('/volunteers') },
+          { icon: 'layers' as IconName, label: t('nav.teams'), onPress: () => router.navigate('/teams') },
+          { icon: 'globe' as IconName, label: t('nav.regions'), onPress: () => router.navigate('/regions') },
+          { icon: 'chart' as IconName, label: t('nav.impact'), onPress: () => router.navigate('/impact') },
+          { icon: 'heart' as IconName, label: t('nav.donations'), onPress: () => router.navigate('/donations') },
+        ]),
   ];
+  const twoCol = isDesktop ? { flexDirection: 'row' as const, alignItems: 'flex-start' as const } : undefined;
 
   return (
-    <Screen title={t('org.dashboard')} maxWidth={1240} refreshing={events.isRefetching} onRefresh={() => { events.refetch(); queue.refetch(); assignments.refetch(); }}>
+    <Screen
+      title={t('org.dashboard')}
+      maxWidth={1240}
+      refreshing={events.isRefetching || insights.isRefetching}
+      onRefresh={() => { events.refetch(); queue.refetch(); insights.refetch(); }}>
       <Row style={{ justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: 8 }} wrap gap={12}>
         <View style={{ gap: 4, flexShrink: 1 }}>
           <Text variant="overline" color={colors.purple}>{orgName}</Text>
@@ -89,6 +85,40 @@ function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
       </Row>
       <OrgSwitcher />
 
+      <View style={styles.hero}>
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text variant="overline" color="#CDB8E6">{t('insights.welcome', { name: firstName(profile?.full_name) })}</Text>
+          <Text style={{ fontFamily: fonts.serif, fontSize: isPhone ? 22 : 26, lineHeight: isPhone ? 30 : 34, color: colors.white }}>{t('insights.heroTitle')}</Text>
+          <Text variant="bodySm" color="#E9DFF5">{t('insights.heroBody')}</Text>
+          <Row gap={8} wrap style={{ marginTop: 8 }}>
+            <Pressable accessibilityRole="button" onPress={() => router.navigate({ pathname: '/events', params: { view: 'month' } })} style={styles.heroBtn}>
+              <Icon name="calendar" size={16} color={colors.plum} />
+              <Text variant="label" color={colors.plum}>{t('insights.viewCalendar')}</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => router.navigate('/impact')} style={[styles.heroBtn, styles.heroBtnGhost]}>
+              <Text variant="label" color={colors.white}>{t('insights.viewImpact')}</Text>
+            </Pressable>
+          </Row>
+        </View>
+        {!isPhone ? (
+          <View style={styles.heroCircle} accessible accessibilityLabel={t('insights.upcomingCount', { count: k?.upcoming_events ?? 0 })}>
+            <Text style={{ fontFamily: fonts.serif, fontSize: 36, lineHeight: 42, color: colors.white }}>{k?.upcoming_events ?? '–'}</Text>
+            <Text variant="small" color="#E9DFF5" align="center">{t('insights.upcomingEvents')}</Text>
+          </View>
+        ) : null}
+      </View>
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        <StatTile icon="users" label={t('insights.activeVolunteers')} value={k ? L.num(k.active_volunteers) : '–'}
+          sub={k ? t('insights.inDirectory', { count: k.volunteers }) : undefined} onPress={() => router.navigate('/volunteers')} />
+        <StatTile icon="calendar" tone="green" label={t('insights.upcomingEvents')} value={k?.upcoming_events ?? '–'}
+          sub={drafts.length ? t('org.activeEventsSub', { drafts: drafts.length }) : undefined} onPress={() => router.navigate('/events')} />
+        <StatTile icon="clock" tone="orange" label={t('insights.sevaHours')} value={k ? L.num(Math.round(k.hours_total)) : '–'}
+          sub={k && k.hours_month > 0 ? t('insights.thisMonth', { hours: L.num(Math.round(k.hours_month)) }) : undefined} onPress={() => router.navigate('/impact')} />
+        <StatTile icon="globe" tone="plum" label={t('insights.activeRegions')} value={k?.active_regions ?? '–'}
+          sub={k ? t('insights.teachersCount', { count: k.teachers }) : undefined} onPress={() => router.navigate('/regions')} />
+      </View>
+
       <Row gap={8} wrap>
         {actions.map((a) => (
           <Pressable key={a.label} accessibilityRole="button" onPress={a.onPress} style={({ pressed }) => [styles.action, pressed && { backgroundColor: colors.track }]}>
@@ -98,52 +128,39 @@ function Dashboard({ orgId, orgName }: { orgId: string; orgName: string }) {
         ))}
       </Row>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-        <MetricCard label={t('org.activeEvents')} value={live.length} sub={drafts.length ? `+ ${t('org.activeEventsSub', { drafts: drafts.length })}` : undefined} />
-        <MetricCard label={t('org.activeVolunteers')} value={activeVolunteers} sub={t('org.activeVolunteersSub', { count: live.length })} />
-        <MetricCard label={t('org.openPositions')} value={openPositions} sub={t('org.openPositionsSub', { count: openTasks.length })} />
-        <MetricCard
-          label={t('org.awaitingReview')}
-          value={queue.data?.length ?? 0}
-          action={queue.data?.length ? t('org.reviewNow') : undefined}
-          onAction={() => router.navigate('/reviews')}
-          sub={oldest ? formatDay(oldest.created_at) : undefined}
-        />
-      </View>
-
       {events.isPending ? null : all.length === 0 ? (
         <EmptyState title={t('org.noEvents')} body={t('org.noEventsBody')}>
           <Button title={t('org.createEvent')} icon="plus" onPress={() => router.push('/events/new')} />
         </EmptyState>
-      ) : (
-        <View style={[{ gap: 20 }, isDesktop && { flexDirection: 'row', alignItems: 'flex-start' }]}>
-          <View style={{ flex: 2, gap: 12 }}>
-            <SectionHeader title={t('org.events')} action={t('org.allEvents')} onAction={() => router.navigate('/events')} />
-            <EventsTable events={all.filter((e) => e.status !== 'cancelled').slice(0, 5)} compact={isPhone} />
+      ) : null}
+
+      {data ? (
+        <>
+          <View style={[{ gap: 16 }, twoCol]}>
+            <Panel title={t('insights.upcomingTitle')} sub={t('insights.upcomingSub')} action={t('insights.fullCalendar')}
+              onAction={() => router.navigate({ pathname: '/events', params: { view: 'agenda' } })} style={{ flex: 2 }}>
+              <UpcomingList rows={data.upcoming} />
+            </Panel>
+            <Panel title={t('insights.coverageTitle')} sub={t('insights.coverageSub')} action={t('insights.allRegions')}
+              onAction={() => router.navigate('/regions')} style={{ flex: 1 }}>
+              <RegionalCoverage data={data} />
+            </Panel>
           </View>
-          <View style={{ flex: 1, gap: 12 }}>
-            <SectionHeader title={t('org.deadlines')} />
-            <Card style={{ gap: 12 }}>
-              {upcoming.length === 0 ? <Text variant="caption">{t('org.noDeadlines')}</Text> : null}
-              {upcoming.map((d, i) => {
-                const tile = dayTile(d.at);
-                return (
-                  <Row key={i} gap={12}>
-                    <View style={[styles.tile, { backgroundColor: d.tone === 'amber' ? colors.amberTint : colors.purpleTint }]}>
-                      <Text style={{ fontFamily: fonts.semibold, fontSize: 10, lineHeight: 12, color: d.tone === 'amber' ? colors.orangeText : colors.purpleDark }}>{tile.dow}</Text>
-                      <Text style={{ fontFamily: fonts.semibold, fontSize: 16, lineHeight: 20 }}>{tile.day}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text variant="label" numberOfLines={1}>{d.title}</Text>
-                      <Text variant="caption">{d.detail}</Text>
-                    </View>
-                  </Row>
-                );
-              })}
-            </Card>
+          <View style={[{ gap: 16 }, twoCol]}>
+            <Panel title={t('alerts.title')} sub={t('alerts.sub', { count: data.alerts.length })} style={{ flex: 1 }}>
+              <AlertList alerts={data.alerts} />
+            </Panel>
+            <Panel title={t('dataHealth.title')} sub={t('dataHealth.sub')} action={t('nav.impact')} onAction={() => router.navigate('/impact')} style={{ flex: 1 }}>
+              <DataHealth data={data} compact />
+            </Panel>
           </View>
-        </View>
-      )}
+          <Panel title={t('insights.momentum')} sub={t('insights.momentumSub')} action={t('insights.impactReport')} onAction={() => router.navigate('/impact')}>
+            <MomentumChart data={data} />
+          </Panel>
+        </>
+      ) : insights.isPending ? (
+        <Text variant="caption">{t('common.loading')}</Text>
+      ) : null}
 
       {liveTasks.length ? <TasksTable events={live} staffing={staffing} compact={isPhone} /> : null}
 
@@ -242,7 +259,27 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.white,
   },
-  tile: { width: 42, height: 46, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  hero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    padding: 24,
+    borderRadius: 20,
+    backgroundColor: colors.plum,
+  },
+  heroBtn: { height: 40, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.white },
+  heroBtnGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  heroCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    padding: 10,
+  },
   tr: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.cardBorder },
   th: { borderTopWidth: 0, paddingVertical: 10, backgroundColor: colors.cream, borderTopLeftRadius: radius.card, borderTopRightRadius: radius.card },
 });

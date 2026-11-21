@@ -94,6 +94,7 @@ export default function NewEventScreen() {
               <>
                 <EventForm
                   key={chosen?.id ?? 'blank'}
+                  orgId={org.id}
                   orgName={org.name}
                   busy={save.isPending}
                   submitLabel={t('eventForm.saveContinue')}

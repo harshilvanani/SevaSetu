@@ -165,6 +165,21 @@ const icons = {
       <Path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6" />
     </>
   ),
+  chart: <Path d="M3 3v18h18M8 17v-5M13 17V8M18 17v-9" />,
+  sparkle: <Path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />,
+  award: (
+    <>
+      <Circle cx="12" cy="9" r="6" />
+      <Path d="m8.5 14-1.5 8 5-3 5 3-1.5-8" />
+    </>
+  ),
+  link: (
+    <>
+      <Path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+      <Path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+    </>
+  ),
+  layers: <Path d="m12 2 10 5-10 5L2 7Zm-10 10 10 5 10-5M2 17l10 5 10-5" />,
 } as const;
 
 export type IconName = keyof typeof icons;

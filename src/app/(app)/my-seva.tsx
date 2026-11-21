@@ -16,6 +16,8 @@ import { Stepper } from '@/components/Stepper';
 import { Text } from '@/components/Text';
 import { progressBreakdown, remaining, reportable } from '@/domain/seva';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { type CalendarView, SevaCalendar } from '@/features/insights/Calendar';
+import { TeamsCard } from '@/features/insights/TeamsCard';
 import { type AssignmentWithTask, assignmentProgress, loggedHours, taskEnd, taskStart, useMyAssignments, useVolunteerStats } from '@/features/seva/api';
 import { useTaskText } from '@/features/seva/components';
 import { useLeaveTask, useUpdateClaim } from '@/features/seva/join';
@@ -34,6 +36,7 @@ export default function MySevaScreen() {
   const [bucket, setBucket] = useState<Bucket>('active');
   const [selectedId, setSelectedId] = useState<string | null>(params.assignment ?? null);
   const [reportOpen, setReportOpen] = useState(params.report === '1');
+  const [calView, setCalView] = useState<CalendarView | null>(null);
 
   const stats = useVolunteerStats();
   const refetchStats = stats.refetch;
@@ -81,12 +84,42 @@ export default function MySevaScreen() {
     );
   }
 
+  if (calView) {
+    const items = all
+      .filter((a) => a.status !== 'cancelled')
+      .map((a) => {
+        const start = taskStart(a.seva_tasks) ?? a.seva_tasks.events.starts_at;
+        return {
+          id: a.id,
+          title: a.seva_tasks.title,
+          start,
+          end: taskEnd(a.seva_tasks) ?? a.seva_tasks.events.ends_at,
+          sub: a.seva_tasks.events.title,
+          tone: (a.status === 'completed' ? 'green' : 'purple') as 'green' | 'purple',
+          onPress: () => { setCalView(null); select(a.id); },
+        };
+      });
+    return (
+      <Screen title={t('mySeva.title')} maxWidth={1180} refreshing={assignments.isRefetching} onRefresh={() => assignments.refetch()}>
+        <Row style={{ justifyContent: 'space-between', paddingTop: 8 }} wrap gap={12}>
+          <Text variant="h1">{t('mySeva.title')}</Text>
+          <Button title={t('calendar.list')} variant="outline" icon="clipboard" onPress={() => setCalView(null)} />
+        </Row>
+        <SevaCalendar items={items} view={calView} onViewChange={setCalView} emptyText={t('mySeva.emptyUpcoming')} />
+      </Screen>
+    );
+  }
+
   const listView = (
     <View style={{ gap: 16, flex: isDesktop ? 0.9 : undefined }}>
-      <Row style={{ justifyContent: 'space-between' }}>
+      <Row style={{ justifyContent: 'space-between' }} wrap gap={8}>
         <Text variant="h1">{t('mySeva.title')}</Text>
-        {isDesktop ? <Button title={t('mySeva.findMore')} variant="outline" icon="search" onPress={() => router.navigate('/discover')} /> : null}
+        <Row gap={8}>
+          <Button title={t('calendar.calendar')} variant="outline" icon="calendar" onPress={() => setCalView('month')} />
+          {isDesktop ? <Button title={t('mySeva.findMore')} variant="outline" icon="search" onPress={() => router.navigate('/discover')} /> : null}
+        </Row>
       </Row>
+      <TeamsCard />
       <Segmented
         label={t('mySeva.title')}
         value={bucket}

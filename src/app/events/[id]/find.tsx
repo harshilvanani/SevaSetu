@@ -8,6 +8,7 @@ import { Badge, Chip } from '@/components/Chip';
 import { TagInput } from '@/components/Field';
 import { EmptyState, Card, Row, Screen, TopBar } from '@/components/Layout';
 import { Text } from '@/components/Text';
+import { MatchBreakdown, MatchRing } from '@/features/insights/MatchScore';
 import { type FoundVolunteer, useFindVolunteers, useInviteToEvent, useOrgEvent } from '@/features/org/api';
 import { OrganizerGate } from '@/features/org/components';
 import { COURSES } from '@/features/profile/prefs';
@@ -102,9 +103,13 @@ function VolunteerCard({ v, picked, onToggle }: { v: FoundVolunteer; picked: boo
   return (
     <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: picked }} onPress={onToggle}>
       <Card style={{ gap: 8, borderColor: picked ? colors.purple : undefined, borderWidth: picked ? 2 : 1 }}>
-        <Row gap={8} wrap style={{ justifyContent: 'space-between' }}>
-          <View style={{ flex: 1 }}>
-            <Text variant="title">{v.full_name || '—'}</Text>
+        <Row gap={12} wrap style={{ justifyContent: 'space-between' }}>
+          <MatchRing score={v.score} />
+          <View style={{ flex: 1, minWidth: 160 }}>
+            <Row gap={6} wrap>
+              <Text variant="title">{v.full_name || '—'}</Text>
+              {v.person_type && v.person_type !== 'volunteer' ? <Badge label={t(`personTypes.${v.person_type}`)} tone="purple" /> : null}
+            </Row>
             <Text variant="caption">
               {[v.city, v.distance_km != null ? t('find.km', { km: v.distance_km }) : null, t(`availability.modes.${v.serve_mode}`)].filter(Boolean).join(' · ')}
             </Text>
@@ -121,8 +126,10 @@ function VolunteerCard({ v, picked, onToggle }: { v: FoundVolunteer; picked: boo
             ))}
           </Row>
         ) : null}
+        {v.breakdown ? <MatchBreakdown b={v.breakdown} /> : null}
         {v.interests.length ? <Text variant="caption">{t('find.interests')}: {v.interests.map((k) => t(`interests.${k}`, { defaultValue: k })).join(', ')}</Text> : null}
-        {v.skills.length ? <Text variant="caption">{t('find.skills')}: {v.skills.join(', ')}</Text> : null}
+        {v.skills.length ? <Text variant="caption">{t('find.skills')}: {v.skills.map((k) => t(`skills.${k}`, { defaultValue: k.replace(/_/g, ' ') })).join(', ')}</Text> : null}
+        {v.languages?.length ? <Text variant="caption">{t('v360.languages')}: {v.languages.map((k) => t(`languages.${k}`, { defaultValue: k })).join(', ')}</Text> : null}
         {v.courses.length ? <Text variant="caption">{t('find.courses')}: {v.courses.map((k) => t(`courses.${k}`)).join(', ')}</Text> : null}
         {!v.onboarded ? <Text variant="caption" color={colors.muted}>{t('find.unfinished')}</Text> : null}
       </Card>

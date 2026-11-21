@@ -22,6 +22,7 @@ import {
   useSetEventStatus,
   useTaskAssignments,
 } from '@/features/org/api';
+import { RepeatCard } from '@/features/insights/RepeatCard';
 import { AccessCard } from '@/features/org/AccessCard';
 import { OrganizerGate, StatusBadge, useStaffingText } from '@/features/org/components';
 import { StepHeader } from '@/features/org/EventForm';
@@ -156,6 +157,7 @@ function Manage({ event }: { event: OrgEvent }) {
           />
         </Card>
       ) : null}
+      {event.status === 'draft' || event.status === 'published' ? <RepeatCard eventId={event.id} startsAt={event.starts_at} seriesId={event.series_id} /> : null}
       {event.visibility === 'private' && event.status !== 'cancelled' ? <AccessCard eventId={event.id} orgId={event.org_id} isPrivate /> : null}
       <Pressable
         accessibilityRole="button"

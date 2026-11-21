@@ -7,10 +7,14 @@ import { Button } from '@/components/Button';
 import { useConfirm } from '@/components/ConfirmDialog';
 import { Badge } from '@/components/Chip';
 import { Icon, type IconName } from '@/components/Icon';
-import { Avatar, Card, Divider, Row, Screen } from '@/components/Layout';
+import { Card, Divider, Row, Screen } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { type PersonType, type Slot, useMyOpenMatches, useMySummary } from '@/features/insights/api';
+import { TeamsCard } from '@/features/insights/TeamsCard';
+import { InsightCard, Volunteer360 } from '@/features/insights/Volunteer360';
+import { useAvailability } from '@/features/profile/prefs';
 import { useVolunteerStats } from '@/features/seva/api';
 import i18n, { LOCALE_NAMES, type Locale, SUPPORTED_LOCALES } from '@/lib/i18n';
 import { useInstallApp } from '@/lib/pwa';
@@ -27,12 +31,17 @@ export default function ProfileScreen() {
   const install = useInstallApp();
 
   const stats = useVolunteerStats();
+  const summary = useMySummary();
+  const slots = useAvailability();
+  const matches = useMyOpenMatches();
   const refetchStats = stats.refetch;
+  const refetchSummary = summary.refetch;
   // Tabs stay mounted: refresh totals whenever this screen comes back into view.
   useFocusEffect(
     useCallback(() => {
       refetchStats();
-    }, [refetchStats]),
+      refetchSummary();
+    }, [refetchStats, refetchSummary]),
   );
 
   if (!session || !profile) {
@@ -75,29 +84,47 @@ export default function ProfileScreen() {
     });
 
   return (
-    <Screen title={t('profile.title')} maxWidth={720}>
+    <Screen title={t('profile.title')} maxWidth={1180}>
       {dialog}
-      <Row gap={14} style={{ paddingTop: 16 }}>
-        <Avatar name={profile.full_name || profile.email || '?'} size={56} />
-        <View style={{ flex: 1 }}>
-          <Text variant="h2">{profile.full_name || t('profile.title')}</Text>
-          <Text variant="caption">{profile.email}</Text>
-          {profile.city ? <Text variant="caption">{profile.city}</Text> : null}
-        </View>
-      </Row>
-
-      <Row gap={12}>
-        <Card style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontFamily: fonts.serif, fontSize: 28, lineHeight: 34 }}>{stats.data?.verified_hours ?? 0}</Text>
-          <Text variant="caption">{t('profile.verifiedHours')}</Text>
-        </Card>
-        <Card style={{ flex: 1, gap: 2 }}>
-          <Text style={{ fontFamily: fonts.serif, fontSize: 28, lineHeight: 34 }}>{stats.data?.completed_count ?? 0}</Text>
-          <Text variant="caption">{t('profile.sevaCompleted')}</Text>
-        </Card>
-      </Row>
+      <Volunteer360
+        mine
+        person={{
+          full_name: profile.full_name,
+          email: profile.email,
+          code: summary.data?.code,
+          person_type: (profile.person_type as PersonType) ?? 'volunteer',
+          is_active: summary.data?.is_active,
+          city: profile.city,
+          region: profile.region,
+          profession: profile.profession,
+          linkedin_url: profile.linkedin_url,
+          linkedin_consent: profile.linkedin_consent,
+          interests: profile.interests,
+          skills: profile.skills,
+          skill_levels: (profile.skill_levels ?? {}) as Record<string, string>,
+          languages: profile.languages ?? [],
+          courses: profile.courses ?? [],
+          availability: (slots.data ?? []) as Slot[],
+          hours: summary.data?.hours ?? stats.data?.verified_hours ?? 0,
+          events_count: summary.data?.events_count ?? 0,
+          joined_at: summary.data?.joined_at ?? profile.created_at,
+        }}
+        insight={
+          <>
+            <InsightCard
+              title={t('v360.insightTitle')}
+              body={matches.data ? t('v360.insightBody', { count: matches.data }) : t('v360.insightNone')}
+              action={t('v360.viewMatches')}
+              onPress={() => router.navigate('/discover')}
+            />
+            <TeamsCard />
+          </>
+        }
+      />
 
       <Card style={{ padding: 0, gap: 0 }}>
+        <MenuItem icon="user" label={t('v360.editProfile')} hint={t('v360.editProfileHint')} onPress={() => router.push('/profile/edit')} />
+        <Divider color={colors.cardBorder} />
         <MenuItem icon="edit" label={t('profile.editDetails')} onPress={() => router.push('/availability')} />
         {memberships.length > 0 ? (
           <>

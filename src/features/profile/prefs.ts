@@ -19,6 +19,10 @@ export const INTERESTS = [
   'environment',
   'translation',
   'fundraising',
+  'meditation',
+  'data',
+  'logistics',
+  'professional',
 ] as const;
 export type Interest = (typeof INTERESTS)[number];
 
@@ -32,7 +36,8 @@ export const RADII = [5, 10, 25, 50] as const;
 export type ProfileUpdate = Partial<
   Pick<
     Tables<'profiles'>,
-    'full_name' | 'city' | 'latitude' | 'longitude' | 'radius_km' | 'interests' | 'skills' | 'serve_mode' | 'hours_per_week' | 'onboarded_at' | 'locale' | 'courses'
+    | 'full_name' | 'city' | 'latitude' | 'longitude' | 'radius_km' | 'interests' | 'skills' | 'serve_mode' | 'hours_per_week' | 'onboarded_at' | 'locale' | 'courses'
+    | 'person_type' | 'country' | 'province' | 'languages' | 'skill_levels' | 'profession' | 'linkedin_url' | 'linkedin_consent' | 'directory_opt_in'
   >
 >;
 

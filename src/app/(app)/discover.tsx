@@ -23,6 +23,7 @@ import {
   useMyInvitations,
 } from '@/features/seva/api';
 import { ActiveSevaCard, SevaCard, SevaDateRow, SevaRow } from '@/features/seva/components';
+import { useMyMatchScores } from '@/features/insights/api';
 import { PrivateEventsSection } from '@/features/seva/PrivateEvents';
 import { useNavBadges } from '@/features/shell/badges';
 import { firstName, greetingKey } from '@/lib/format';
@@ -72,6 +73,8 @@ export default function DiscoverScreen() {
   );
 
   const all = useMemo(() => tasks.data ?? [], [tasks.data]);
+  const matchScores = useMyMatchScores(session ? all.map((x) => x.id) : []);
+  const matchOf = (id: string) => matchScores.data?.[id]?.score;
   const dist = (task: TaskWithEvent) => taskDistance(task, origin);
 
   const matches = (task: TaskWithEvent, f: Filters) => {
@@ -101,8 +104,7 @@ export default function DiscoverScreen() {
     .filter((task) => !joinedIds.has(task.id) && joinState(task) === 'open' && task.visibility === 'public')
     .map((task) => ({
       task,
-      score:
-        (interests.includes(task.category ?? '') ? 3 : 0) +
+      score: matchScores.data?.[task.id]?.score ?? (interests.includes(task.category ?? '') ? 3 : 0) +
         (fitsAvailability(taskStart(task), slots.data ?? []) && taskStart(task) ? 2 : 0) +
         (profile?.serve_mode === 'virtual' && task.mode !== 'onsite' ? 1 : 0) +
         (profile?.serve_mode === 'onsite' && task.mode !== 'virtual' ? 1 : 0),
@@ -235,13 +237,13 @@ export default function DiscoverScreen() {
           {isPhone ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ gap: 12, paddingHorizontal: 16, paddingBottom: 4 }}>
               {recommended.map((task) => (
-                <SevaCard key={task.id} task={task} km={dist(task)} width={272} />
+                <SevaCard key={task.id} task={task} km={dist(task)} width={272} match={matchOf(task.id)} />
               ))}
             </ScrollView>
           ) : (
             <Grid>
               {recommended.map((task) => (
-                <SevaCard key={task.id} task={task} km={dist(task)} />
+                <SevaCard key={task.id} task={task} km={dist(task)} match={matchOf(task.id)} />
               ))}
             </Grid>
           )}
@@ -265,7 +267,7 @@ export default function DiscoverScreen() {
             <EmptyState title={t('discover.emptyTitle')} body={t('discover.emptyBody')} />
           )
         ) : (
-          <PublicList list={filtering ? publicList : publicList.slice(0, firstCount)} dist={dist} />
+          <PublicList list={filtering ? publicList : publicList.slice(0, firstCount)} dist={dist} matchOf={matchOf} />
         )}
       </View>
 
@@ -274,7 +276,7 @@ export default function DiscoverScreen() {
       {!filtering && publicList.length > firstCount ? (
         showAll ? (
           <View style={{ gap: 12 }}>
-            <PublicList list={publicList.slice(firstCount)} dist={dist} />
+            <PublicList list={publicList.slice(firstCount)} dist={dist} matchOf={matchOf} />
           </View>
         ) : (
           <Button title={t('discover.showAll', { count: publicList.length })} variant="outline" onPress={() => setShowAll(true)} />
@@ -293,13 +295,13 @@ export default function DiscoverScreen() {
   );
 }
 
-function PublicList({ list, dist }: { list: TaskWithEvent[]; dist: (t: TaskWithEvent) => number | null }) {
+function PublicList({ list, dist, matchOf }: { list: TaskWithEvent[]; dist: (t: TaskWithEvent) => number | null; matchOf: (id: string) => number | undefined }) {
   const { isPhone } = useLayout();
   if (isPhone) return <>{list.map((task) => <SevaRow key={task.id} task={task} km={dist(task)} />)}</>;
   return (
     <Grid>
       {list.map((task) => (
-        <SevaCard key={task.id} task={task} km={dist(task)} />
+        <SevaCard key={task.id} task={task} km={dist(task)} match={matchOf(task.id)} />
       ))}
     </Grid>
   );

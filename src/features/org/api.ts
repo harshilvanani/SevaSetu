@@ -158,6 +158,7 @@ export type EventInput = {
   online_details: string | null;
   contact_info: string | null;
   template_id?: string | null;
+  centre_id?: string | null;
 };
 
 export function useSaveEvent() {
@@ -467,6 +468,10 @@ export type FoundVolunteer = {
   reasons: ('interest' | 'skills' | 'course' | 'available' | 'near' | 'online')[];
   courses: string[];
   onboarded: boolean;
+  person_type: string;
+  region: string | null;
+  languages: string[];
+  breakdown: import('@/features/insights/api').Breakdown;
 };
 
 export function useFindVolunteers(v: { eventId: string; taskId: string | null; skills: string[]; courses: string[]; onlyAvailable: boolean; onlyNear: boolean }) {

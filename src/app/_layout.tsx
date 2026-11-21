@@ -99,6 +99,9 @@ function RootNavigator() {
         <Stack.Screen name="events/[id]/task" />
         <Stack.Screen name="events/[id]/complete" />
         <Stack.Screen name="events/[id]/find" />
+        <Stack.Screen name="profile/edit" />
+        <Stack.Screen name="volunteers/[id]" />
+        <Stack.Screen name="teams/[id]" />
       </Stack.Protected>
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="reset-password" />

@@ -33,6 +33,7 @@ export function dayTile(iso: string) {
   return {
     dow: fmt({ weekday: 'short' }).format(d).replace('.', '').toUpperCase(),
     day: String(d.getDate()),
+    month: fmt({ month: 'short' }).format(d).replace('.', '').toUpperCase(),
   };
 }
 

@@ -8,6 +8,7 @@ import { Icon } from '@/components/Icon';
 import { Row } from '@/components/Layout';
 import { ImpactBar, ProgressBar } from '@/components/ProgressBar';
 import { Text } from '@/components/Text';
+import { MatchPill } from '@/features/insights/MatchScore';
 import { capacity, claimedFraction, joinState, progressBreakdown, remaining } from '@/domain/seva';
 import { dayTile, formatDay, formatRange, formatWhen } from '@/lib/format';
 import { colors, fonts, radius, shadow } from '@/theme/tokens';
@@ -61,7 +62,7 @@ export function StatusBadge({ task }: { task: TaskWithEvent }) {
 const kmLabel = (km: number | null) => (km == null ? null : km < 10 ? km.toFixed(1) : Math.round(km).toString());
 
 /** Card used in carousels / desktop grid. */
-export function SevaCard({ task, km, width }: { task: TaskWithEvent; km?: number | null; width?: number }) {
+export function SevaCard({ task, km, width, match }: { task: TaskWithEvent; km?: number | null; width?: number; match?: number }) {
   const { t } = useTranslation();
   const text = useTaskText();
   const state = joinState(task);
@@ -78,6 +79,7 @@ export function SevaCard({ task, km, width }: { task: TaskWithEvent; km?: number
         <Badge label={text.mode(task)} tone="purple" />
         {text.category(task) ? <Badge label={text.category(task)!} tone="neutral" /> : null}
         {task.visibility === 'private' ? <Badge label={t('seva.invited')} tone="amber" icon="lock" /> : null}
+        {match !== undefined ? <MatchPill score={match} /> : null}
       </Row>
       <Text variant="title" numberOfLines={2}>{task.title}</Text>
       <Text variant="caption" numberOfLines={1}>{meta}</Text>

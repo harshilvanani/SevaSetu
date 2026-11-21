@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { Badge } from '@/components/Chip';
+import { Badge, Chip } from '@/components/Chip';
 import { defaultDate, DateTimeField } from '@/components/DateTimeField';
 import { TextField } from '@/components/Field';
 import { Icon } from '@/components/Icon';
 import { Card, Row, useLayout } from '@/components/Layout';
 import { OptionCards } from '@/components/Segmented';
 import { Text } from '@/components/Text';
+import { useCentres } from '@/features/insights/api';
 import { geocodeCity } from '@/features/profile/prefs';
 import { formatDay, formatRange } from '@/lib/format';
 import type { Enums, Tables } from '@/lib/supabase';
@@ -55,6 +56,7 @@ export function StepHeader({ step }: { step: 1 | 2 | 3 }) {
 }
 
 export function EventForm({
+  orgId,
   orgName,
   initial,
   defaults,
@@ -63,6 +65,7 @@ export function EventForm({
   busy,
   submitLabel,
 }: {
+  orgId?: string;
   orgName: string;
   initial?: Tables<'events'>;
   /** Starting values for a new event (from a template). */
@@ -86,6 +89,13 @@ export function EventForm({
   const [contact, setContact] = useState(details?.contact_info ?? '');
   const [visibility, setVisibility] = useState<Enums<'visibility'>>(initial?.visibility ?? defaults?.visibility ?? 'public');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const centres = useCentres(orgId);
+  const [centreId, setCentreId] = useState<string | null>(initial?.centre_id ?? null);
+  const pickCentre = (id: string) => {
+    const c = centres.data?.find((x) => x.id === id);
+    setCentreId(centreId === id ? null : id);
+    if (c && centreId !== id && !city.trim() && c.city) setCity(c.province ? `${c.city}, ${c.province}` : c.city);
+  };
 
   const needsVenue = mode !== 'virtual';
   const timeError = start && end && end <= start ? t('eventForm.endAfterStart') : undefined;
@@ -113,6 +123,7 @@ export function EventForm({
       visibility,
       online_details: mode !== 'onsite' ? online.trim() || null : null,
       contact_info: contact.trim() || null,
+      ...(orgId ? { centre_id: centreId } : {}),
     });
   };
 
@@ -168,6 +179,15 @@ export function EventForm({
           </>
         ) : null}
         <TextField label={t('eventForm.city')} value={city} onChangeText={setCity} placeholder="Toronto, ON" />
+        {centres.data?.length ? (
+          <View style={{ gap: 8 }}>
+            <Text variant="label">{t('eventForm.centre')} <Text variant="label" weight="regular" color={colors.muted}>{t('common.optional')}</Text></Text>
+            <Row gap={8} wrap>
+              {centres.data.map((c) => <Chip key={c.id} size="sm" label={c.name} selected={centreId === c.id} onPress={() => pickCentre(c.id)} />)}
+            </Row>
+            <Text variant="caption">{t('eventForm.centreHint')}</Text>
+          </View>
+        ) : null}
         {mode !== 'onsite' ? (
           <TextField label={t('eventForm.online')} value={online} onChangeText={setOnline} hint={t('eventForm.onlineHint')} placeholder="meet.example.com/…" />
         ) : null}

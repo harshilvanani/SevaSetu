@@ -22,18 +22,18 @@ export function LogoMark({ size = 40 }: { size?: number }) {
   );
 }
 
-export function Logo({ size = 40, subtitle = true }: { size?: number; subtitle?: boolean }) {
+export function Logo({ size = 40, subtitle = true, onDark }: { size?: number; subtitle?: boolean; onDark?: boolean }) {
   const word = { fontFamily: fonts.semibold, fontSize: size * 0.55, lineHeight: size * 0.66, letterSpacing: -0.3 };
   return (
     <View accessible accessibilityLabel="SevaSetu by The Art of Living" style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <LogoMark size={size * 0.8} />
       <View>
         <Text style={word}>
-          <Text style={[word, { color: BRAND_PURPLE }]}>seva</Text>
+          <Text style={[word, { color: onDark ? colors.white : BRAND_PURPLE }]}>seva</Text>
           <Text style={[word, { color: BRAND_ORANGE }]}>setu</Text>
         </Text>
         {subtitle ? (
-          <Text style={{ fontFamily: fonts.medium, fontSize: Math.max(11, size * 0.26), lineHeight: size * 0.36, color: colors.purple }}>
+          <Text style={{ fontFamily: fonts.medium, fontSize: Math.max(11, size * 0.26), lineHeight: size * 0.36, color: onDark ? '#CDB8E6' : colors.purple }}>
             by The Art of Living
           </Text>
         ) : null}

@@ -79,7 +79,7 @@ export function OptionCards<T extends string>({
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', padding: 4, borderRadius: 12, backgroundColor: colors.track },
-  tab: { flex: 1, height: 40, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  tab: { flex: 1, height: 40, paddingHorizontal: 10, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   active: {
     backgroundColor: colors.white,
     shadowColor: '#222',

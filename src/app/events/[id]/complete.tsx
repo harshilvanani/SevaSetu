@@ -9,6 +9,7 @@ import { Card, EmptyState, Row, Screen, TopBar } from '@/components/Layout';
 import { Text } from '@/components/Text';
 import { type HoursCandidate, useCompleteEvent, useHoursCandidates, useOrgEvent } from '@/features/org/api';
 import { OrganizerGate } from '@/features/org/components';
+import { supabase } from '@/lib/supabase';
 import { colors } from '@/theme/tokens';
 
 const parse = (s: string) => {
@@ -50,6 +51,7 @@ function HoursForm({ eventId, candidates, onDone }: { eventId: string; candidate
     Object.fromEntries(candidates.map((c) => [c.assignment_id, String(c.logged ?? c.estimate ?? 0)])),
   );
   const [error, setError] = useState<string | null>(null);
+  const [reached, setReached] = useState('');
 
   const groups = candidates.reduce<Record<string, { title: string; rows: HoursCandidate[] }>>((acc, c) => {
     (acc[c.task_id] ??= { title: c.task_title, rows: [] }).rows.push(c);
@@ -65,7 +67,13 @@ function HoursForm({ eventId, candidates, onDone }: { eventId: string; candidate
       if (h === null || h < 0 || h > 100) return setError(t('complete.invalid'));
       hours.push({ assignment_id: c.assignment_id, hours: h });
     }
+    const people = reached.trim() ? Number(reached.trim()) : null;
+    if (people !== null && (!Number.isInteger(people) || people < 0 || people > 1_000_000)) return setError(t('complete.reachedInvalid'));
     try {
+      if (people !== null) {
+        const { error: rErr } = await supabase.from('events').update({ people_reached: people }).eq('id', eventId);
+        if (rErr) throw rErr;
+      }
       await complete.mutateAsync({ eventId, hours });
       onDone();
     } catch (e) {
@@ -97,6 +105,10 @@ function HoursForm({ eventId, candidates, onDone }: { eventId: string; candidate
           ))}
         </Card>
       ))}
+      <Card style={{ gap: 8, padding: 20 }}>
+        <TextField label={t('complete.reached')} optional value={reached} onChangeText={(v) => setReached(v.replace(/[^0-9]/g, ''))}
+          keyboardType="number-pad" hint={t('complete.reachedHint')} placeholder="120" />
+      </Card>
       {candidates.length ? <Text variant="label">{t('complete.total', { hours: Math.round(total * 100) / 100 })}</Text> : null}
       {error ? <Text variant="caption" color={colors.danger}>{error}</Text> : null}
       <Button title={t('complete.confirm')} size="lg" loading={complete.isPending} onPress={submit} />
