@@ -1,5 +1,6 @@
 import { router, usePathname } from 'expo-router';
 import { TabSlot, useTabsWithTriggers } from 'expo-router/ui';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,6 +24,8 @@ type Tab = {
 
 const ALL = ['discover', 'my-seva', 'availability', 'profile', 'dashboard', 'events', 'reviews', 'give', 'donations', 'volunteers', 'teams', 'regions', 'impact'] as const;
 
+const ORGANIZER_ONLY = ['/dashboard', '/events', '/reviews', '/donations', '/volunteers', '/teams', '/regions', '/impact'];
+
 // Dark (plum) sidebar on desktop, SevaConnect style.
 const side = { text: '#E4D9F1', muted: '#B9A8D0', active: 'rgba(255,255,255,0.13)', hover: 'rgba(255,255,255,0.07)', line: 'rgba(255,255,255,0.12)' };
 
@@ -37,6 +40,11 @@ export default function AppShell() {
   const badges = useNavBadges();
   const canOrganize = memberships.length > 0;
   const organizer = canOrganize && mode === 'organizer';
+  // A link straight to an organizer page (shared link, alert) opens in organizer mode.
+  const onOrganizerPage = ORGANIZER_ONLY.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+  useEffect(() => {
+    if (canOrganize && onOrganizerPage && mode !== 'organizer') setMode('organizer');
+  }, [canOrganize, onOrganizerPage, mode, setMode]);
 
   const { NavigationContent } = useTabsWithTriggers({
     triggers: ALL.map((name) => ({ type: 'internal' as const, name, href: `/${name}` as Tab['href'] })),
