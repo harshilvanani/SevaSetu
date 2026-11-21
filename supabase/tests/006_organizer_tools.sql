@@ -99,7 +99,8 @@ update event_access set status = 'revoked' where user_id = '00000000-0000-0000-0
 set local role authenticated;
 select is((select array_to_string(reasons, ',') from find_volunteers('00000000-0000-0000-0000-00000000e6e1', '00000000-0000-0000-0000-00000000f6f2', '{driving}', false, false, 'UTC')
            where full_name = 'Vik Volunteer'), 'interest,skills,available,near', 'best match shows why');
-select is((select count(*)::int from find_volunteers('00000000-0000-0000-0000-00000000e6e1', '00000000-0000-0000-0000-00000000f6f2', '{}', true, false, 'UTC')), 1, 'availability filter keeps only available volunteers');
+select is((select count(*)::int from find_volunteers('00000000-0000-0000-0000-00000000e6e1', '00000000-0000-0000-0000-00000000f6f2', '{}', true, false, 'UTC')
+            where id in ('00000000-0000-0000-0000-00000000c103', '00000000-0000-0000-0000-00000000c104')), 1, 'availability filter keeps only available volunteers');
 select ok((select not bool_or(to_jsonb(f)::text like '%@%') from find_volunteers('00000000-0000-0000-0000-00000000e6e1', null) f), 'no contact details in results');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000c103","role":"authenticated"}', true);
 select throws_ok($$ select * from find_volunteers('00000000-0000-0000-0000-00000000e6e1') $$, 'P0001', 'not_authorized', 'only organizers can search');

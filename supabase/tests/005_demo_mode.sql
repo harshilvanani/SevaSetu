@@ -1,6 +1,6 @@
 -- Demo mode: demo data is invisible to real users, demo users can't touch real data, admin-only controls.
 begin;
-select plan(14);
+select plan(15);
 
 -- the hosted project already has demo accounts: remove them inside this rolled-back test
 delete from auth.users where id in (select user_id from demo_accounts);
@@ -32,8 +32,9 @@ insert into seva_tasks (id, event_id, title, type, positions, status) values
 select reset_demo_data();
 select reset_demo_data();  -- idempotent
 
-select is((select count(*)::int from events where org_id = 'd0000000-0000-4000-8000-0000000000a1'), 8, 'reset builds 8 demo events (twice, no duplicates)');
-select is((select count(*)::int from profiles where is_demo), 3, 'three demo profiles');
+select is((select count(*)::int from events where org_id = 'd0000000-0000-4000-8000-0000000000a1' and id::text like 'd0000000-0000-4000-8000-0000000000e_'), 8, 'reset builds the 8 base demo events (twice, no duplicates)');
+select is((select count(*)::int from events where org_id = 'd0000000-0000-4000-8000-0000000000a1' and title = 'December 25–29 Retreat Seva'), 1, 'the network seed runs once per reset');
+select is((select count(*)::int from profiles p join demo_accounts d on d.user_id = p.id where p.is_demo), 3, 'three demo personas');
 select is((select claimed_total from seva_tasks where id = 'd0000000-0000-4000-8000-000000000502'), 12, 'demo joins feed the capacity counters');
 
 -- ------------------------------------------------------------ real user
@@ -47,7 +48,7 @@ select throws_ok($$ select admin_reset_demo() $$, 'P0001', 'not_authorized', 'no
 
 -- ------------------------------------------------------------ demo volunteer
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000d003","role":"authenticated"}', true);
-select is((select count(*)::int from events where title = 'Community Meal Drive'), 1, 'demo user sees demo events');
+select is((select count(*)::int from events where id = 'd0000000-0000-4000-8000-0000000000e5'), 1, 'demo user sees demo events');
 select is((select count(*)::int from events where title = 'Real event'), 0, 'demo user does not see real events');
 select is((join_task('d0000000-0000-4000-8000-000000000503')) ->> 'status', 'joined', 'demo user joins demo seva');
 select throws_ok($$ select join_task('00000000-0000-0000-0000-00000000f0d1') $$, 'P0001', 'task_not_found', 'demo user cannot join real seva');

@@ -153,6 +153,53 @@ export type Database = {
           },
         ]
       }
+      centres: {
+        Row: {
+          city: string | null
+          country: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          org_id: string
+          province: string | null
+          region: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          org_id: string
+          province?: string | null
+          region?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          org_id?: string
+          province?: string | null
+          region?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "centres_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demo_accounts: {
         Row: {
           email: string
@@ -173,6 +220,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      demo_volunteer_seed: {
+        Row: {
+          arrival: string | null
+          available_retreat: boolean
+          experienced: boolean
+          large_groups: boolean
+          last_seva: string | null
+          user_id: string
+        }
+        Insert: {
+          arrival?: string | null
+          available_retreat?: boolean
+          experienced?: boolean
+          large_groups?: boolean
+          last_seva?: string | null
+          user_id: string
+        }
+        Update: {
+          arrival?: string | null
+          available_retreat?: boolean
+          experienced?: boolean
+          large_groups?: boolean
+          last_seva?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_volunteer_seed_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demo_volunteer_seed_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       donation_campaigns: {
         Row: {
@@ -577,6 +666,7 @@ export type Database = {
       events: {
         Row: {
           address: string | null
+          centre_id: string | null
           city: string | null
           completed_at: string | null
           created_at: string
@@ -588,7 +678,9 @@ export type Database = {
           longitude: number | null
           mode: Database["public"]["Enums"]["participation_mode"]
           org_id: string
+          people_reached: number | null
           published_at: string | null
+          series_id: string | null
           starts_at: string
           status: Database["public"]["Enums"]["event_status"]
           template_id: string | null
@@ -599,6 +691,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          centre_id?: string | null
           city?: string | null
           completed_at?: string | null
           created_at?: string
@@ -610,7 +703,9 @@ export type Database = {
           longitude?: number | null
           mode?: Database["public"]["Enums"]["participation_mode"]
           org_id: string
+          people_reached?: number | null
           published_at?: string | null
+          series_id?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["event_status"]
           template_id?: string | null
@@ -621,6 +716,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          centre_id?: string | null
           city?: string | null
           completed_at?: string | null
           created_at?: string
@@ -632,7 +728,9 @@ export type Database = {
           longitude?: number | null
           mode?: Database["public"]["Enums"]["participation_mode"]
           org_id?: string
+          people_reached?: number | null
           published_at?: string | null
+          series_id?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["event_status"]
           template_id?: string | null
@@ -642,6 +740,13 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["visibility"]
         }
         Relationships: [
+          {
+            foreignKeyName: "events_centre_id_fkey"
+            columns: ["centre_id"]
+            isOneToOne: false
+            referencedRelation: "centres"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_created_by_fkey"
             columns: ["created_by"]
@@ -869,14 +974,49 @@ export type Database = {
           },
         ]
       }
+      profile_private: {
+        Row: {
+          accessibility_needs: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accessibility_needs?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accessibility_needs?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_private_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_private_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           blocked_at: string | null
           blocked_reason: string | null
           city: string | null
+          country: string
           courses: string[]
           created_at: string
+          directory_opt_in: boolean
           email: string | null
           full_name: string
           hours_per_week: string | null
@@ -884,22 +1024,33 @@ export type Database = {
           interests: string[]
           is_demo: boolean
           is_platform_admin: boolean
+          languages: string[]
           latitude: number | null
+          linkedin_consent: boolean
+          linkedin_url: string | null
           locale: string
           longitude: number | null
           onboarded_at: string | null
+          person_type: string
+          profession: string | null
+          province: string | null
           radius_km: number
+          region: string | null
           serve_mode: Database["public"]["Enums"]["serve_mode"]
+          skill_levels: Json
           skills: string[]
           updated_at: string
+          volunteer_no: number
         }
         Insert: {
           avatar_url?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           city?: string | null
+          country?: string
           courses?: string[]
           created_at?: string
+          directory_opt_in?: boolean
           email?: string | null
           full_name?: string
           hours_per_week?: string | null
@@ -907,22 +1058,33 @@ export type Database = {
           interests?: string[]
           is_demo?: boolean
           is_platform_admin?: boolean
+          languages?: string[]
           latitude?: number | null
+          linkedin_consent?: boolean
+          linkedin_url?: string | null
           locale?: string
           longitude?: number | null
           onboarded_at?: string | null
+          person_type?: string
+          profession?: string | null
+          province?: string | null
           radius_km?: number
+          region?: string | null
           serve_mode?: Database["public"]["Enums"]["serve_mode"]
+          skill_levels?: Json
           skills?: string[]
           updated_at?: string
+          volunteer_no?: number
         }
         Update: {
           avatar_url?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           city?: string | null
+          country?: string
           courses?: string[]
           created_at?: string
+          directory_opt_in?: boolean
           email?: string | null
           full_name?: string
           hours_per_week?: string | null
@@ -930,14 +1092,23 @@ export type Database = {
           interests?: string[]
           is_demo?: boolean
           is_platform_admin?: boolean
+          languages?: string[]
           latitude?: number | null
+          linkedin_consent?: boolean
+          linkedin_url?: string | null
           locale?: string
           longitude?: number | null
           onboarded_at?: string | null
+          person_type?: string
+          profession?: string | null
+          province?: string | null
           radius_km?: number
+          region?: string | null
           serve_mode?: Database["public"]["Enums"]["serve_mode"]
+          skill_levels?: Json
           skills?: string[]
           updated_at?: string
+          volunteer_no?: number
         }
         Relationships: []
       }
@@ -1222,6 +1393,148 @@ export type Database = {
           },
         ]
       }
+      team_members: {
+        Row: {
+          created_at: string
+          invited_by: string | null
+          status: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          invited_by?: string | null
+          status?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          invited_by?: string | null
+          status?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          centre_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          lead_id: string | null
+          name: string
+          org_id: string
+          seva_area: string | null
+          target_size: number
+        }
+        Insert: {
+          centre_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          lead_id?: string | null
+          name: string
+          org_id: string
+          seva_area?: string | null
+          target_size?: number
+        }
+        Update: {
+          centre_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          lead_id?: string | null
+          name?: string
+          org_id?: string
+          seva_area?: string | null
+          target_size?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_centre_id_fkey"
+            columns: ["centre_id"]
+            isOneToOne: false
+            referencedRelation: "centres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_profiles: {
@@ -1295,6 +1608,7 @@ export type Database = {
         Args: { p_blocked: boolean; p_reason?: string; p_user: string }
         Returns: Json
       }
+      area_skills: { Args: { p_area: string }; Returns: string[] }
       assert_not_blocked: { Args: never; Returns: undefined }
       assert_platform_admin: { Args: never; Returns: undefined }
       can_edit_template: { Args: { p_template: string }; Returns: boolean }
@@ -1320,6 +1634,24 @@ export type Database = {
       }
       decline_invitation: { Args: { p_invitation: string }; Returns: undefined }
       delete_my_account: { Args: never; Returns: undefined }
+      demo_add_event: {
+        Args: {
+          p_centre: string
+          p_desc: string
+          p_fill: number
+          p_hours: number
+          p_kind: string
+          p_mode: Database["public"]["Enums"]["participation_mode"]
+          p_org: string
+          p_reached?: number
+          p_series?: string
+          p_start: string
+          p_tasks: Json
+          p_title: string
+          p_visibility?: Database["public"]["Enums"]["visibility"]
+        }
+        Returns: string
+      }
       effective_hours: { Args: { p_assignment: string }; Returns: number }
       estimate_hours: { Args: { p_assignment: string }; Returns: number }
       event_access_people: {
@@ -1355,14 +1687,18 @@ export type Database = {
         }
         Returns: {
           availability: Json
+          breakdown: Json
           city: string
           courses: string[]
           distance_km: number
           full_name: string
           id: string
           interests: string[]
+          languages: string[]
           onboarded: boolean
+          person_type: string
           reasons: string[]
+          region: string
           score: number
           serve_mode: Database["public"]["Enums"]["serve_mode"]
           skills: string[]
@@ -1370,6 +1706,10 @@ export type Database = {
       }
       has_event_access: { Args: { p_event: string }; Returns: boolean }
       has_task_access: { Args: { p_task: string }; Returns: boolean }
+      in_org_directory: {
+        Args: { p_org: string; p_user: string }
+        Returns: boolean
+      }
       invite_to_event: {
         Args: { p_days?: number; p_event: string; p_users: string[] }
         Returns: number
@@ -1378,12 +1718,17 @@ export type Database = {
         Args: { p_days?: number; p_task: string; p_users: string[] }
         Returns: number
       }
+      invite_to_team: {
+        Args: { p_team: string; p_users: string[] }
+        Returns: number
+      }
       is_blocked: { Args: { p_user?: string }; Returns: boolean }
       is_demo_user: { Args: { p_user?: string }; Returns: boolean }
       is_event_participant: { Args: { p_event: string }; Returns: boolean }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       join_task: { Args: { p_qty?: number; p_task: string }; Returns: Json }
+      last_active_at: { Args: { p_user: string }; Returns: string }
       leave_task: { Args: { p_assignment: string }; Returns: Json }
       list_private_events: {
         Args: never
@@ -1406,6 +1751,47 @@ export type Database = {
         }
         Returns: undefined
       }
+      match_breakdown: {
+        Args: {
+          p_event: string
+          p_skills?: string[]
+          p_task?: string
+          p_tz?: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      my_match_scores: {
+        Args: { p_tasks: string[]; p_tz?: string }
+        Returns: {
+          breakdown: Json
+          score: number
+          task_id: string
+        }[]
+      }
+      my_open_matches: { Args: { p_tz?: string }; Returns: number }
+      my_summary: {
+        Args: never
+        Returns: {
+          code: string
+          events_count: number
+          hours: number
+          is_active: boolean
+          joined_at: string
+        }[]
+      }
+      my_teams: {
+        Args: never
+        Returns: {
+          id: string
+          lead_name: string
+          members_count: number
+          name: string
+          org_name: string
+          seva_area: string
+          status: string
+        }[]
+      }
       notify: {
         Args: {
           p_body?: string
@@ -1417,16 +1803,81 @@ export type Database = {
         Returns: undefined
       }
       org_accepts_donations: { Args: { p_org: string }; Returns: boolean }
+      org_directory: {
+        Args: { p_org: string; p_user?: string }
+        Returns: {
+          availability: Json
+          city: string
+          code: string
+          country: string
+          courses: string[]
+          email: string
+          events_count: number
+          full_name: string
+          history: Json
+          hours: number
+          id: string
+          interests: string[]
+          is_active: boolean
+          languages: string[]
+          last_active: string
+          linkedin_url: string
+          onboarded: boolean
+          opted_in: boolean
+          person_type: string
+          profession: string
+          province: string
+          region: string
+          serve_mode: Database["public"]["Enums"]["serve_mode"]
+          served_with_org: boolean
+          skill_levels: Json
+          skills: string[]
+        }[]
+      }
+      org_insights: { Args: { p_org?: string }; Returns: Json }
+      org_teams: {
+        Args: { p_org: string }
+        Returns: {
+          centre_id: string
+          centre_name: string
+          description: string
+          id: string
+          lead_id: string
+          lead_name: string
+          members: Json
+          name: string
+          region: string
+          seva_area: string
+          target_size: number
+        }[]
+      }
       publish_event: { Args: { p_event: string }; Returns: undefined }
       refresh_task_counters: { Args: { p_task: string }; Returns: undefined }
+      region_for: {
+        Args: { p_country: string; p_province: string }
+        Returns: string
+      }
+      remove_team_member: {
+        Args: { p_team: string; p_user: string }
+        Returns: undefined
+      }
       reopen_event: { Args: { p_event: string }; Returns: undefined }
+      repeat_event_weekly: {
+        Args: { p_event: string; p_tz?: string; p_until: string }
+        Returns: number
+      }
       request_event_access: {
         Args: { p_event: string; p_note?: string }
         Returns: string
       }
+      reset_demo_core: { Args: never; Returns: undefined }
       reset_demo_data: { Args: never; Returns: undefined }
       respond_event_request: {
         Args: { p_approve: boolean; p_event: string; p_user: string }
+        Returns: undefined
+      }
+      respond_team_invite: {
+        Args: { p_accept: boolean; p_team: string }
         Returns: undefined
       }
       resubmit_organization: {
@@ -1460,6 +1911,7 @@ export type Database = {
           id: string
         }[]
       }
+      seed_demo_network: { Args: never; Returns: undefined }
       send_seva_reminders: { Args: never; Returns: number }
       submit_progress: {
         Args: { p_assignment: string; p_note?: string; p_qty: number }
@@ -1470,9 +1922,27 @@ export type Database = {
         Args: { t: Database["public"]["Tables"]["seva_tasks"]["Row"] }
         Returns: number
       }
+      team_org: { Args: { p_team: string }; Returns: string }
+      team_suggestions: {
+        Args: { p_team: string }
+        Returns: {
+          city: string
+          full_name: string
+          id: string
+          person_type: string
+          reasons: string[]
+          region: string
+          score: number
+        }[]
+      }
       update_claim: {
         Args: { p_assignment: string; p_qty: number }
         Returns: Json
+      }
+      valid_skill_levels: { Args: { p: Json }; Returns: boolean }
+      volunteer_code: {
+        Args: { p_country: string; p_no: number; p_type: string }
+        Returns: string
       }
       volunteer_stats: {
         Args: { p_user?: string }
