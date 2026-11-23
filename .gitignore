@@ -46,3 +46,8 @@ example
 supabase/.temp/
 supabase/.branches/
 sevasetu-website.zip
+
+# AWS CDK
+infra/node_modules/
+infra/cdk.out/
+infra/cdk.context.json
